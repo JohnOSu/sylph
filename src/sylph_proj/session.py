@@ -8,11 +8,17 @@ from pathlib import Path
 class SessionConfig:
     def __init__(self, data):
         self._sut_type: str = data['test_context']['sut_type']
-        self._desired_capabilities: dict = data['desired_caps']
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
         self._platform: str = data['desired_caps']['platformName'] if 'platformName' in data['desired_caps'] else None
+
+        # Selenium grid doesn't handle mobile platformName capability correctly, so remove it if executing on grid.
+        self._is_grid_hub = data['exec_target']['isGridHub'] if 'isGridHub' in data['exec_target'] else False
+        if self._is_grid_hub and self.is_mobile and 'platformName' in data['desired_caps']:
+            del data['desired_caps']['platformName']
+
+        self._desired_capabilities: dict = data['desired_caps']
 
     @property
     def is_mobile(self) -> bool:
