@@ -19,6 +19,8 @@ class SessionConfig:
             del data['desired_caps']['platformName']
 
         self._desired_capabilities: dict = data['desired_caps']
+        self._testrail_integration = data['tool_integration']['testrail_integration']
+        self._jira_integration = data['tool_integration']['jira_integration']
 
     @property
     def is_mobile(self) -> bool:
@@ -58,7 +60,15 @@ class SessionConfig:
 
     @property
     def is_real_device(self) -> bool:
-        return self._real_device == True
+        return self._real_device is True
+
+    @property
+    def is_testrail_integration(self) -> bool:
+        return self._testrail_integration is True
+
+    @property
+    def is_jira_integration(self) -> bool:
+        return self._jira_integration is True
 
 
 class ConfigLoader:
