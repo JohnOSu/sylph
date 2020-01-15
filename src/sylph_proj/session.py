@@ -84,35 +84,20 @@ class ConfigLoader:
             # If not found, get template based on 'sut_type' env variable.
             sut_type = os.environ.get('SUT_TYPE')
             if sut_type:
-                data = self._get_config_template(sut_type)
+                data = self._get_sut_config_template(sut_type)
             else:
-                raise Exception('Cannot identify the system under test. This should '
-                                'be set in a session config file, or with an environment variable.')
-        # sut_type is now in data
+                # No sut_type, so assume api test session
+                data = self._get_sut_config_template(Session.API)
+
+            data.update(self._get_integration_template())
+
         # now check for environment overrides
-        data = self._get_env_overrides(data)
-
-        if os.environ.get('JIRA_USER_NAME'):
-            data['tool_integration']['jira_username'] = os.environ.get('JIRA_USER_NAME')
-        if os.environ.get('JIRA_PASSWORD'):
-            data['tool_integration']['jira_password'] = os.environ.get('JIRA_PASSWORD')
-
-        if os.environ.get('TESTRAIL_REPORT'):
-            data['tool_integration']['testrail_report'] = os.environ.get('TESTRAIL_REPORT')
-        if os.environ.get('TESTRAIL_USER_NAME'):
-            data['tool_integration']['testrail_username'] = os.environ.get('TESTRAIL_USER_NAME')
-        if os.environ.get('TESTRAIL_PASSWORD'):
-            data['tool_integration']['testrail_password'] = os.environ.get('TESTRAIL_PASSWORD')
-        if os.environ.get('TESTRAIL_HOST'):
-            data['tool_integration']['testrail_host'] = os.environ.get('TESTRAIL_HOST')
-        if os.environ.get('TESTRAIL_TEST_SUITE_NAME'):
-            data['tool_integration']['testrail_test_suite_name'] = os.environ.get('TESTRAIL_TEST_SUITE_NAME')
-        if os.environ.get('TESTRAIL_PROJECT_NAME'):
-            data['tool_integration']['testrail_project_name'] = os.environ.get('TESTRAIL_PROJECT_NAME')
+        data = self._get_sut_env_overrides(data)
+        data = self._get_integration_env_overrides(data)
 
         return data
 
-    def _get_config_template(self, sut_type):
+    def _get_sut_config_template(self, sut_type):
         if sut_type == Session.MOBILE:
             data = self._get_config_template_mobile()
         elif sut_type == Session.WEB:
@@ -124,7 +109,32 @@ class ConfigLoader:
 
         return data
 
-    def _get_env_overrides(self, data):
+    def _get_integration_env_overrides(self, data):
+        if os.environ.get('JIRA_INTEGRATION'):
+            data['tool_integration']['jira_integration'] = os.environ.get('JIRA_INTEGRATION')
+        if os.environ.get('JIRA_USER_NAME'):
+            data['tool_integration']['jira_username'] = os.environ.get('JIRA_USER_NAME')
+        if os.environ.get('JIRA_PASSWORD'):
+            data['tool_integration']['jira_password'] = os.environ.get('JIRA_PASSWORD')
+
+        if os.environ.get('TESTRAIL_INTEGRATION'):
+            data['tool_integration']['testrail_integration'] = os.environ.get('TESTRAIL_INTEGRATION')
+        if os.environ.get('TESTRAIL_USER_NAME'):
+            data['tool_integration']['testrail_username'] = os.environ.get('TESTRAIL_USER_NAME')
+        if os.environ.get('TESTRAIL_PASSWORD'):
+            data['tool_integration']['testrail_password'] = os.environ.get('TESTRAIL_PASSWORD')
+        if os.environ.get('TESTRAIL_HOST'):
+            data['tool_integration']['testrail_host'] = os.environ.get('TESTRAIL_HOST')
+        if os.environ.get('TESTRAIL_TEST_SUITE_ID'):
+            data['tool_integration']['testrail_test_suite_id'] = os.environ.get('TESTRAIL_TEST_SUITE_ID')
+        if os.environ.get('TESTRAIL_PROJECT_ID'):
+            data['tool_integration']['testrail_project_id'] = os.environ.get('TESTRAIL_PROJECT_ID')
+        if os.environ.get('TESTRAIL_PLAN_ID'):
+            data['tool_integration']['testrail_plan_id'] = os.environ.get('TESTRAIL_PLAN_ID')
+
+        return data
+
+    def _get_sut_env_overrides(self, data):
         sut_type = data['test_context']['sut_type']
         if sut_type == Session.MOBILE:
             data = self._get_env_overrides_mobile(data)
@@ -134,8 +144,6 @@ class ConfigLoader:
             data = self._get_env_overrides_api(data)
         else:
             raise Exception(f'Unsupported system under test: {sut_type}')
-
-        # todo get general env overrides - e.g. TestRail & Jira
 
         return data
 
@@ -148,10 +156,6 @@ class ConfigLoader:
             data['desired_caps']['platformVersion'] = os.environ.get('PLATFORM_VERSION')
         if os.environ.get('APP'):
             data['desired_caps']['app'] = os.environ.get('APP')
-        if os.environ.get('AUTOMATION_NAME'):
-            data['desired_caps']['automationName'] = os.environ.get('AUTOMATION_NAME')
-        if os.environ.get('WDA_LOCAL_PORT'):
-            data['desired_caps']['wdaLocalPort'] = os.environ.get('WDA_LOCAL_PORT')
 
         if os.environ.get('SERVER'):
             data['exec_target']['server'] = os.environ.get('SERVER')
@@ -193,16 +197,6 @@ class ConfigLoader:
                 "server": None,
                 "realDevice": None
             },
-            "tool_integration": {
-                "jira_username": None,
-                "jira_password": None,
-                "testrail_report": None,
-                "testrail_username": None,
-                "testrail_password": None,
-                "testrail_host": None,
-                "testrail_test_suite_name": None,
-                "testrail_project_name": None
-            }
         }
 
     @staticmethod
@@ -220,16 +214,6 @@ class ConfigLoader:
             "exec_target": {
                 "server": None
             },
-            "tool_integration": {
-                "jira_username": None,
-                "jira_password": None,
-                "testrail_report": None,
-                "testrail_username": None,
-                "testrail_password": None,
-                "testrail_host": None,
-                "testrail_test_suite_name": None,
-                "testrail_project_name": None
-            }
         }
 
     @staticmethod
@@ -251,15 +235,22 @@ class ConfigLoader:
                 "server": None,
                 "realDevice": None
             },
+        }
+
+    @staticmethod
+    def _get_integration_template():
+        return {
             "tool_integration": {
+                "jira_integration": None,
                 "jira_username": None,
                 "jira_password": None,
-                "testrail_report": None,
+                "testrail_integration": None,
                 "testrail_username": None,
                 "testrail_password": None,
                 "testrail_host": None,
-                "testrail_test_suite_name": None,
-                "testrail_project_name": None
+                "testrail_test_suite_id": None,
+                "testrail_project_id": None,
+                "testrail_plan_id": None
             }
         }
 
