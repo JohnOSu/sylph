@@ -2,6 +2,7 @@ from .session import Session, SessionConfig
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 
+
 class RemoteWebDriverFactory:
     session: Session
     config: SessionConfig
@@ -23,7 +24,6 @@ class AppiumDriverFactory(RemoteWebDriverFactory):
 
 
 class SeleniumDriverFactory(RemoteWebDriverFactory):
-
     driver: SeleniumDriver
 
     def __init__(self, session):
