@@ -72,8 +72,13 @@ class SessionConfig:
 
 
 class ConfigLoader:
-    def __init__(self, project_path):
+
+    _log: Logger
+    OVERRIDE_MSG = 'Environment override found:'
+
+    def __init__(self, project_path, logger):
         self._project_path = project_path
+        self._log = logger
 
     @property
     def data(self):
@@ -121,25 +126,35 @@ class ConfigLoader:
 
     def _get_integration_env_overrides(self, data):
         if os.environ.get('JIRA_INTEGRATION'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} JIRA_INTEGRATION')
             data['tool_integration']['jira_integration'] = os.environ.get('JIRA_INTEGRATION')
         if os.environ.get('JIRA_USER_NAME'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} JIRA_USER_NAME')
             data['tool_integration']['jira_username'] = os.environ.get('JIRA_USER_NAME')
         if os.environ.get('JIRA_PASSWORD'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} JIRA_PASSWORD')
             data['tool_integration']['jira_password'] = os.environ.get('JIRA_PASSWORD')
 
         if os.environ.get('TESTRAIL_INTEGRATION'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_INTEGRATION')
             data['tool_integration']['testrail_integration'] = os.environ.get('TESTRAIL_INTEGRATION')
         if os.environ.get('TESTRAIL_USER_NAME'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_USER_NAME')
             data['tool_integration']['testrail_username'] = os.environ.get('TESTRAIL_USER_NAME')
         if os.environ.get('TESTRAIL_PASSWORD'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_PASSWORD')
             data['tool_integration']['testrail_password'] = os.environ.get('TESTRAIL_PASSWORD')
         if os.environ.get('TESTRAIL_HOST'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_HOST')
             data['tool_integration']['testrail_host'] = os.environ.get('TESTRAIL_HOST')
         if os.environ.get('TESTRAIL_TEST_SUITE_ID'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_TEST_SUITE_ID')
             data['tool_integration']['testrail_test_suite_id'] = os.environ.get('TESTRAIL_TEST_SUITE_ID')
         if os.environ.get('TESTRAIL_PROJECT_ID'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_TEST_SUITE_ID')
             data['tool_integration']['testrail_project_id'] = os.environ.get('TESTRAIL_PROJECT_ID')
         if os.environ.get('TESTRAIL_PLAN_ID'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TESTRAIL_PLAN_ID')
             data['tool_integration']['testrail_plan_id'] = os.environ.get('TESTRAIL_PLAN_ID')
 
         return data
@@ -159,17 +174,23 @@ class ConfigLoader:
 
     def _get_env_overrides_mobile(self, data):
         if os.environ.get('DEVICE_NAME'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME')
             data['desired_caps']['deviceName'] = os.environ.get('DEVICE_NAME')
         if os.environ.get('PLATFORM_NAME'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME')
             data['desired_caps']['platformName'] = os.environ.get('PLATFORM_NAME')
         if os.environ.get('PLATFORM_VERSION'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_VERSION')
             data['desired_caps']['platformVersion'] = os.environ.get('PLATFORM_VERSION')
         if os.environ.get('APP'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} APP')
             data['desired_caps']['app'] = os.environ.get('APP')
 
         if os.environ.get('SERVER'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER')
             data['exec_target']['server'] = os.environ.get('SERVER')
         if os.environ.get('REAL_DEVICE'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} REAL_DEVICE')
             data['exec_target']['realDevice'] = os.environ.get('REAL_DEVICE')
 
         return data
@@ -283,7 +304,7 @@ class Session:
         self.project_path = self._get_solution_project_path()
         self._init_logging()
         self.log.debug('Node session initialiser loading the session config')
-        self._data = ConfigLoader(self.project_path).data
+        self._data = ConfigLoader(self.project_path, self.log).data
         self._config = SessionConfig(self._data)
 
     @property
