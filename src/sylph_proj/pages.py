@@ -9,6 +9,9 @@ class BasePage:
     log: logging.Logger
     config: SessionConfig
 
+    SWIPE_UP = 'up'
+    SWIPE_DOWN = 'down'
+
     def __init__(self, tw):
         self.config = tw.config
         self.log = tw.log
@@ -118,3 +121,33 @@ class BasePageMobile(BasePage):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
+
+    def try_find_element(self, locator, max_swipes=3, swipe_dir=BasePage.SWIPE_UP):
+        """Repeated swipe action (default:up) for the specified number of attempts or until the element is found.
+           If not found, no consequences.
+
+        Args:
+            :param locator: A lambda function that returns a webelement.
+            :param max_swipes: The max number of swipes to attempt
+            :param swipe_dir: 'up' to reveal elements below, 'down' to reveal elements above
+        """
+        located = False
+        attempts = 0
+        while not located:
+            attempts +=1
+            self.swipe_up() if swipe_dir is BasePage.SWIPE_UP else self.swipe_down()
+            located = self.is_element_displayed(lambda: locator(), 2)
+            if attempts >= max_swipes:
+                break
+
+    def swipe_up(self):
+        if self.config.is_ios:
+            self.driver.swipe(50, 350, 50, 290, 1000)
+        else:
+            self.driver.swipe(100, 1000, 100, 845, 1000)
+
+    def swipe_down(self):
+        if self.config.is_ios:
+            self.driver.swipe(50, 290, 50, 350, 1000)
+        else:
+            self.driver.swipe(100, 845, 100, 1000, 1000)
