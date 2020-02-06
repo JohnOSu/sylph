@@ -1,11 +1,11 @@
-from .session import Session, SessionConfig
+from .sylphsession import SylphSession, SylphSessionConfig
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 
 
 class RemoteWebDriverFactory:
-    session: Session
-    config: SessionConfig
+    session: SylphSession
+    config: SylphSessionConfig
 
     def __init__(self, session):
         self.session = session

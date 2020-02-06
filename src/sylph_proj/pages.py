@@ -1,13 +1,15 @@
 import time
 import logging
-from .session import SessionConfig
+from appium.webdriver.webdriver import WebDriver as AppiumDriver
+from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+from .sylphsession import SylphSessionConfig
 from .wrappers import WebTestWrapper
 from .wrappers import MobileTestWrapper
 
 
 class BasePage:
     log: logging.Logger
-    config: SessionConfig
+    config: SylphSessionConfig
 
     SWIPE_UP = 'up'
     SWIPE_DOWN = 'down'
@@ -100,24 +102,18 @@ class BasePage:
 
 
 class BasePageWeb(BasePage):
-    from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
-
     driver: SeleniumDriver
-    _tw: WebTestWrapper
 
-    def __init__(self, tw):
+    def __init__(self, tw: WebTestWrapper):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
 
 
 class BasePageMobile(BasePage):
-    from appium.webdriver.webdriver import WebDriver as AppiumDriver
-
     driver: AppiumDriver
-    _tw: MobileTestWrapper
 
-    def __init__(self, tw):
+    def __init__(self, tw: MobileTestWrapper):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
