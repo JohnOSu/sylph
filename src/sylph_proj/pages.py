@@ -125,7 +125,7 @@ class BasePageMobile(BasePage):
         super().__init__(tw)
         self.driver = tw.driver
 
-    def try_find_element(self, locator, max_swipes=3, swipe_dir=BasePage.SWIPE_UP):
+    def try_find_element(self, locator, max_swipes=6, swipe_dir=BasePage.SWIPE_UP):
         """Repeated swipe action (default:up) for the specified number of attempts or until the element is found.
            If not found, no consequences.
 
@@ -145,12 +145,12 @@ class BasePageMobile(BasePage):
 
     def swipe_up(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 350, 50, 290, 1000)
+            self.driver.swipe(50, 350, 50, 310, 1000)
         else:
             self.driver.swipe(100, 1000, 100, 845, 1000)
 
     def swipe_down(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 290, 50, 350, 1000)
+            self.driver.swipe(50, 310, 50, 350, 1000)
         else:
             self.driver.swipe(100, 845, 100, 1000, 1000)
