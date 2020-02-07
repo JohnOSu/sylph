@@ -1,13 +1,16 @@
 import time
 import logging
+from abc import ABCMeta, abstractmethod
+
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+
 from .sylphsession import SylphSessionConfig
 from .wrappers import WebTestWrapper
 from .wrappers import MobileTestWrapper
 
 
-class BasePage:
+class BasePage(metaclass=ABCMeta):
     log: logging.Logger
     config: SylphSessionConfig
 
@@ -18,6 +21,10 @@ class BasePage:
         self.config = tw.config
         self.log = tw.log
         self.log.debug(f'{self.__class__.__name__} initialiser connected to {self.log.name} logger')
+
+    @abstractmethod
+    def is_done_loading(self) -> bool:
+        pass
 
     def is_element_displayed(self, elem, wait=10) -> bool:
         """Repeated safe check for the specified wait time (seconds) until the element is displayed.
