@@ -1,18 +1,20 @@
 import sys
 import os
 import logging
-from .session import SessionConfig
+from appium.webdriver.webdriver import WebDriver as AppiumDriver
+from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+from .sylphsession import SylphSessionConfig, SylphSession
 
 
 class BaseTestWrapper:
     """
-    Provides logging, webdriver and session details
+    Provides logging, webdriver and sylph details
     """
 
     log: logging.LoggerAdapter
-    config: SessionConfig
+    config: SylphSessionConfig
 
-    def __init__(self, session):
+    def __init__(self, sylph: SylphSession):
         self._external_test_id = None
         executing_test = self._get_calling_test_from_stack()
         self._internal_test_name = executing_test.name
@@ -20,13 +22,13 @@ class BaseTestWrapper:
         for mark in executing_test.iter_markers(name="testrail"):
             self._external_test_id = mark.kwargs['ids'][0]
 
-        self.config = session.config
+        self.config = sylph.config
         test_details = f'{self._internal_test_name}'
 
         if self._external_test_id:
             test_details = f'{self.external_test_id} | {test_details}'
 
-        adapter = CustomAdapter(session.log, {'test_details': test_details})
+        adapter = CustomAdapter(sylph.log, {'test_details': test_details})
         self.log = adapter
 
     @property
@@ -65,22 +67,14 @@ class BaseTestWrapper:
 
 
 class WebTestWrapper(BaseTestWrapper):
-    from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
-
-    driver: SeleniumDriver
-
-    def __init__(self, session, driver):
-        super().__init__(session)
+    def __init__(self, sylph: SylphSession, driver: SeleniumDriver):
+        super().__init__(sylph)
         self.driver = driver
 
 
 class MobileTestWrapper(BaseTestWrapper):
-    from appium.webdriver.webdriver import WebDriver as AppiumDriver
-
-    driver: AppiumDriver
-
-    def __init__(self, session, driver):
-        super().__init__(session)
+    def __init__(self, sylph: SylphSession, driver: AppiumDriver):
+        super().__init__(sylph)
         self.driver = driver
 
 
@@ -89,6 +83,5 @@ class CustomAdapter(logging.LoggerAdapter):
     This adapter expects the passed in dict-like object to have a
     'test_details' key, whose value in brackets is prepended to the log message.
     """
-
     def process(self, msg, kwargs):
         return '%s | %s' % (self.extra['test_details'], msg), kwargs

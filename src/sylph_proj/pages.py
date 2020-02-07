@@ -1,13 +1,18 @@
 import time
 import logging
-from .session import SessionConfig
+from abc import ABCMeta, abstractmethod
+
+from appium.webdriver.webdriver import WebDriver as AppiumDriver
+from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+
+from .sylphsession import SylphSessionConfig
 from .wrappers import WebTestWrapper
 from .wrappers import MobileTestWrapper
 
 
-class BasePage:
+class BasePage(metaclass=ABCMeta):
     log: logging.Logger
-    config: SessionConfig
+    config: SylphSessionConfig
 
     SWIPE_UP = 'up'
     SWIPE_DOWN = 'down'
@@ -16,6 +21,10 @@ class BasePage:
         self.config = tw.config
         self.log = tw.log
         self.log.debug(f'{self.__class__.__name__} initialiser connected to {self.log.name} logger')
+
+    @abstractmethod
+    def is_done_loading(self) -> bool:
+        pass
 
     def is_element_displayed(self, elem, wait=10) -> bool:
         """Repeated safe check for the specified wait time (seconds) until the element is displayed.
@@ -100,29 +109,23 @@ class BasePage:
 
 
 class BasePageWeb(BasePage):
-    from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
-
     driver: SeleniumDriver
-    _tw: WebTestWrapper
 
-    def __init__(self, tw):
+    def __init__(self, tw: WebTestWrapper):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
 
 
 class BasePageMobile(BasePage):
-    from appium.webdriver.webdriver import WebDriver as AppiumDriver
-
     driver: AppiumDriver
-    _tw: MobileTestWrapper
 
-    def __init__(self, tw):
+    def __init__(self, tw: MobileTestWrapper):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
 
-    def try_find_element(self, locator, max_swipes=3, swipe_dir=BasePage.SWIPE_UP):
+    def try_find_element(self, locator, max_swipes=6, swipe_dir=BasePage.SWIPE_UP):
         """Repeated swipe action (default:up) for the specified number of attempts or until the element is found.
            If not found, no consequences.
 
@@ -142,12 +145,12 @@ class BasePageMobile(BasePage):
 
     def swipe_up(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 350, 50, 290, 1000)
+            self.driver.swipe(50, 350, 50, 310, 1000)
         else:
             self.driver.swipe(100, 1000, 100, 845, 1000)
 
     def swipe_down(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 290, 50, 350, 1000)
+            self.driver.swipe(50, 310, 50, 350, 1000)
         else:
             self.driver.swipe(100, 845, 100, 1000, 1000)

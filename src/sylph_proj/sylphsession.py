@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 
-class SessionConfig:
+class SylphSessionConfig:
     def __init__(self, data):
         self._sut_type: str = data['test_context']['sut_type']
         self._exec_target_server: str = data['exec_target']['server']
@@ -16,15 +16,15 @@ class SessionConfig:
 
     @property
     def is_mobile(self) -> bool:
-        return self._sut_type.lower() == Session.MOBILE
+        return self._sut_type.lower() == SylphSession.MOBILE
 
     @property
     def is_web(self) -> bool:
-        return self._sut_type.lower() == Session.WEB
+        return self._sut_type.lower() == SylphSession.WEB
 
     @property
     def is_api(self) -> bool:
-        return self._sut_type.lower() == Session.API
+        return self._sut_type.lower() == SylphSession.API
 
     @property
     def desired_capabilities(self) -> dict:
@@ -66,11 +66,11 @@ class ConfigLoader:
 
     @property
     def data(self):
-        return self._load_session_config()
+        return self._load_sylph_config()
 
-    def _load_session_config(self):
+    def _load_sylph_config(self):
         """
-        Get the session config from json.
+        Get the sylph config from json.
         If not found, get it from a template.
         Then check for os env overrides.
         :return:
@@ -85,8 +85,8 @@ class ConfigLoader:
             if sut_type:
                 data = self._get_sut_config_template(sut_type)
             else:
-                # No sut_type, so assume api test session
-                data = self._get_sut_config_template(Session.API)
+                # No sut_type, so assume api test sylph
+                data = self._get_sut_config_template(SylphSession.API)
 
         # now check for environment overrides
         data = self._get_sut_env_overrides(data)
@@ -94,11 +94,11 @@ class ConfigLoader:
         return data
 
     def _get_sut_config_template(self, sut_type):
-        if sut_type == Session.MOBILE:
+        if sut_type == SylphSession.MOBILE:
             data = self._get_config_template_mobile()
-        elif sut_type == Session.WEB:
+        elif sut_type == SylphSession.WEB:
             data = self._get_config_template_web()
-        elif sut_type == Session.API:
+        elif sut_type == SylphSession.API:
             data = self._get_config_template_api()
         else:
             raise Exception(f'Unsupported system under test: {sut_type}')
@@ -107,11 +107,11 @@ class ConfigLoader:
 
     def _get_sut_env_overrides(self, data):
         sut_type = data['test_context']['sut_type']
-        if sut_type == Session.MOBILE:
+        if sut_type == SylphSession.MOBILE:
             data = self._get_env_overrides_mobile(data)
-        elif sut_type == Session.WEB:
+        elif sut_type == SylphSession.WEB:
             data = self._get_env_overrides_web(data)
-        elif sut_type == Session.API:
+        elif sut_type == SylphSession.API:
             data = self._get_env_overrides_api(data)
         else:
             raise Exception(f'Unsupported system under test: {sut_type}')
@@ -162,7 +162,7 @@ class ConfigLoader:
     def _get_config_template_mobile():
         return {
             "test_context": {
-                "sut_type": Session.MOBILE,
+                "sut_type": SylphSession.MOBILE,
                 "test_env": None
             },
             "desired_caps": {
@@ -183,7 +183,7 @@ class ConfigLoader:
     def _get_config_template_web():
         return {
             "test_context": {
-                "sut_type": Session.WEB,
+                "sut_type": SylphSession.WEB,
                 "test_env": None
             },
             "desired_caps": {
@@ -200,7 +200,7 @@ class ConfigLoader:
     def _get_config_template_api():
         return {
             "test_context": {
-                "sut_type": Session.API,
+                "sut_type": SylphSession.API,
                 "test_env": None
             },
             "desired_caps": {
@@ -218,12 +218,13 @@ class ConfigLoader:
         }
 
 
-class Session:
+class SylphSession:
     """
-    Loads session config, initialises session logging
+    Loads sylph config, initialises sylph logging
     """
     log: Logger = Logger
 
+    FIXTURES = "sylph_proj.fixtures"
     TEST_ROOT_DIR = 'tests'
     LOGGING_DIR = 'test_results'
     LOGFILE = 'results.log'
@@ -235,9 +236,8 @@ class Session:
     def __init__(self):
         self.project_path = self._get_solution_project_path()
         self._init_logging()
-        self.log.debug('Node session initialiser loading the session config')
         self._data = ConfigLoader(self.project_path, self.log).data
-        self._config = SessionConfig(self._data)
+        self._config = SylphSessionConfig(self._data)
 
     @property
     def project_path(self):
@@ -248,13 +248,13 @@ class Session:
         self._project_path = value
 
     @property
-    def config(self) -> SessionConfig:
+    def config(self) -> SylphSessionConfig:
         return self._config
 
     def _get_solution_project_path(self):
         # Climb the tree until we are in the tests dir. Then return parent name.
         cwd = Path.cwd()
-        while cwd.name is not Session.TEST_ROOT_DIR:
+        while cwd.name is not SylphSession.TEST_ROOT_DIR:
             os.chdir(os.path.dirname(os.getcwd()))
             cwd = Path.cwd()
 
@@ -292,4 +292,4 @@ class Session:
         self.log.addHandler(c_handler)
         self.log.addHandler(f_handler)
 
-        self.log.debug(f'Node {self} instance: Initialised {self.log.name} logger')
+        self.log.debug(f'{self} Initialised...')
