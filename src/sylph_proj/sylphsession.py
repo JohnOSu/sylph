@@ -224,6 +224,7 @@ class SylphSession:
     """
     log: Logger = Logger
 
+    FIXTURES = "sylph_proj.fixtures"
     TEST_ROOT_DIR = 'tests'
     LOGGING_DIR = 'test_results'
     LOGFILE = 'results.log'
