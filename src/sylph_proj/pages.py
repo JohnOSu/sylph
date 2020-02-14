@@ -26,13 +26,14 @@ class BasePage(metaclass=ABCMeta):
     def is_done_loading(self) -> bool:
         pass
 
-    def is_element_displayed(self, elem, wait=10) -> bool:
+    def is_element_displayed(self, elem, wait=10, name=None) -> bool:
         """Repeated safe check for the specified wait time (seconds) until the element is displayed.
            If not found, return false.
 
         Args:
             :param elem: A lambda function that returns a webelement.
-            :param wait: The wait time for the process to complete.
+            :param wait: (Default:10) The wait time in seconds for the process to complete.
+            :param name: (Optional) A name describing the webelement for logging purposes.
 
         Returns:
             True if element is displayed.
@@ -52,12 +53,19 @@ class BasePage(metaclass=ABCMeta):
             time.sleep(1)
             since = time.time()
             span = self.span(since, beginning)
-            self.log.debug(f'Waiting for element | Elapsed seconds: {span}')
+            
+            span_msg = f'Elapsed seconds: {span}'
+            wait_msg = f'Waiting for element'
+            wait_msg = f'{wait_msg}: {name} | {span_msg}' if name else f'{wait_msg}. | {span_msg}'
+            self.log.debug(wait_msg)
 
             if span >= wait:
-                self.log.debug(f'Element was not found: Elapsed seconds: {span}')
+                wait_msg = f'Element {name} not found' if name else 'Element not found'
+                self.log.debug(wait_msg)
                 return False
 
+        msg = 'Found Element'
+        self.log.debug(f'{msg}: {name}' if name else msg)
         return True
 
     def wait_for_condition(self, condition, wait=10):
@@ -125,7 +133,7 @@ class BasePageMobile(BasePage):
         super().__init__(tw)
         self.driver = tw.driver
 
-    def try_find_element(self, locator, max_swipes=6, swipe_dir=BasePage.SWIPE_UP):
+    def try_find_element(self, locator, max_swipes=6, swipe_dir=BasePage.SWIPE_UP, name=None):
         """Repeated swipe action (default:up) for the specified number of attempts or until the element is found.
            If not found, no consequences.
 
@@ -133,13 +141,15 @@ class BasePageMobile(BasePage):
             :param locator: A lambda function that returns a webelement.
             :param max_swipes: The max number of swipes to attempt
             :param swipe_dir: 'up' to reveal elements below, 'down' to reveal elements above
+            :param name: (Optional) A name describing the webelement for logging purposes.
         """
-        located = False
+        located = self.is_element_displayed(lambda: locator(), 2, name)
         attempts = 0
         while not located:
             attempts +=1
+            self.log.debug(f'Swiping: {swipe_dir}')
             self.swipe_up() if swipe_dir is BasePage.SWIPE_UP else self.swipe_down()
-            located = self.is_element_displayed(lambda: locator(), 2)
+            located = self.is_element_displayed(lambda: locator(), 2, name)
             if attempts >= max_swipes:
                 break
 
