@@ -16,6 +16,8 @@ class BasePage(metaclass=ABCMeta):
 
     SWIPE_UP = 'up'
     SWIPE_DOWN = 'down'
+    SWIPE_LEFT = 'left'
+    SWIPE_RIGHT = 'right'
 
     def __init__(self, tw):
         self.config = tw.config
@@ -148,7 +150,15 @@ class BasePageMobile(BasePage):
         while not located:
             attempts +=1
             self.log.debug(f'Swiping: {swipe_dir}')
-            self.swipe_up() if swipe_dir is BasePage.SWIPE_UP else self.swipe_down()
+            if swipe_dir is BasePage.SWIPE_UP:
+                self.swipe_up()
+            elif swipe_dir is BasePage.SWIPE_DOWN:
+                self.swipe_down()
+            elif swipe_dir is BasePage.SWIPE_LEFT:
+                self.swipe_left()
+            else:
+                self.swipe_right()
+
             located = self.is_element_displayed(lambda: locator(), 2, name)
             if attempts >= max_swipes:
                 break
@@ -164,3 +174,15 @@ class BasePageMobile(BasePage):
             self.driver.swipe(50, 310, 50, 350, 1000)
         else:
             self.driver.swipe(100, 845, 100, 1000, 1000)
+
+    def swipe_left(self):
+        if self.config.is_ios:
+            self.driver.swipe(350, 350, 50, 350, 1000)
+        else:
+            self.driver.swipe(500, 1000, 150, 1000, 1000)
+
+    def swipe_right(self):
+        if self.config.is_ios:
+            self.driver.swipe(50, 350, 350, 350, 1000)
+        else:
+            self.driver.swipe(150, 1000, 500, 1000, 1000)
