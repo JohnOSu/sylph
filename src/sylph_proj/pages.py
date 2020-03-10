@@ -165,24 +165,24 @@ class BasePageMobile(BasePage):
 
     def swipe_up(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 350, 50, 310, 1000)
+            self.driver.swipe(50, 350, 50, 310, 400)
         else:
             self.driver.swipe(100, 1000, 100, 845, 400)
 
     def swipe_down(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 310, 50, 350, 1000)
+            self.driver.swipe(50, 310, 50, 350, 400)
         else:
             self.driver.swipe(100, 845, 100, 1000, 400)
 
     def swipe_left(self):
         if self.config.is_ios:
-            self.driver.swipe(350, 350, 50, 350, 1000)
+            self.driver.swipe(350, 350, 50, 350, 400)
         else:
             self.driver.swipe(700, 1000, 100, 1000, 400)
 
     def swipe_right(self):
         if self.config.is_ios:
-            self.driver.swipe(50, 350, 350, 350, 1000)
+            self.driver.swipe(50, 350, 350, 350, 400)
         else:
             self.driver.swipe(100, 1000, 700, 1000, 400)
