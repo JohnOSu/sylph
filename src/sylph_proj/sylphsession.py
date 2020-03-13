@@ -47,19 +47,19 @@ class SylphSessionConfig:
 
     @property
     def is_chrome(self) -> bool:
-        return self._browser.lower() == 'chrome'
+        return False if self._browser is None else self._browser.lower() == 'chrome'
 
     @property
     def is_firefox(self) -> bool:
-        return self._browser.lower() == 'firefox'
+        return False if self._browser is None else self._browser.lower() == 'firefox'
 
     @property
     def is_android(self) -> bool:
-        return self._platform.lower() == 'android'
+        return False if self._platform is None else self._platform.lower() == 'android'
 
     @property
     def is_ios(self) -> bool:
-        return self._platform.lower() == 'ios'
+        return False if self._platform is None else self._platform.lower() == 'ios'
 
     @property
     def is_real_device(self) -> bool:
