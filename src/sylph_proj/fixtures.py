@@ -27,7 +27,7 @@ def appdriver(sylph) -> AppiumDriver:
 def appwrapper(sylph, appdriver) -> MobileTestWrapper:
     app = MobileTestWrapper(sylph, appdriver)
     yield app
-    sylph.log.debug('AppTest Wrapper fixture cleanup...')
+    sylph.log.debug('App Test Wrapper fixture cleanup...')
 
 
 @pytest.fixture(scope='function')
@@ -42,4 +42,5 @@ def webdriver(sylph) -> SeleniumDriver:
 def webwrapper(sylph, webdriver) -> WebTestWrapper:
     web = WebTestWrapper(sylph, webdriver)
     yield web
-    sylph.log.debug('WebTest Wrapper fixture cleanup...')
+    sylph.log.debug('Web Test Wrapper fixture cleanup...')
+
