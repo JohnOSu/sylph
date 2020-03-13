@@ -6,13 +6,24 @@ from pathlib import Path
 
 
 class SylphSessionConfig:
+
+    # SUT environment
+    DEV_ENV = 'dev'
+    STAGING_ENV = 'staging'
+    PROD_ENV = 'production'
+
     def __init__(self, data):
         self._sut_type: str = data['test_context']['sut_type']
+        self._test_env: str = data['test_context']['test_env']
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
         self._platform: str = data['desired_caps']['platformName'] if 'platformName' in data['desired_caps'] else None
         self._desired_capabilities: dict = data['desired_caps']
+
+    @property
+    def environment(self) -> str:
+        return self._test_env
 
     @property
     def is_mobile(self) -> bool:
