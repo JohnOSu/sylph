@@ -118,6 +118,11 @@ class ConfigLoader:
 
     def _get_sut_env_overrides(self, data):
         sut_type = data['test_context']['sut_type']
+
+        if os.environ.get('TEST_ENV'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TEST_ENV')
+            data['test_context']['test_env'] = os.environ.get('TEST_ENV')
+
         if sut_type == SylphSession.MOBILE:
             data = self._get_env_overrides_mobile(data)
         elif sut_type == SylphSession.WEB:
@@ -166,15 +171,15 @@ class ConfigLoader:
         return data
 
     def _get_env_overrides_api(self, data):
-        # todo
-        pass
+        # todo: determine if any additional overrides might be specifically api related
+        return data
 
     @staticmethod
     def _get_config_template_mobile():
         return {
             "test_context": {
                 "sut_type": SylphSession.MOBILE,
-                "test_env": None
+                "test_env": SylphSessionConfig.DEV_ENV
             },
             "desired_caps": {
                 "deviceName": None,
@@ -195,7 +200,7 @@ class ConfigLoader:
         return {
             "test_context": {
                 "sut_type": SylphSession.WEB,
-                "test_env": None
+                "test_env": SylphSessionConfig.DEV_ENV
             },
             "desired_caps": {
                 "browser": None,
@@ -212,7 +217,7 @@ class ConfigLoader:
         return {
             "test_context": {
                 "sut_type": SylphSession.API,
-                "test_env": None
+                "test_env": SylphSessionConfig.DEV_ENV
             },
             "desired_caps": {
                 "deviceName": None,
@@ -240,6 +245,7 @@ class SylphSession:
     LOGGING_DIR = 'test_results'
     LOGFILE = 'results.log'
 
+    # Session platform
     MOBILE = 'mobile'
     WEB = 'web'
     API = 'api'
