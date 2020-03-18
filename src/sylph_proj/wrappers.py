@@ -78,10 +78,17 @@ class MobileTestWrapper(BaseTestWrapper):
         self.driver = driver
 
 
+class ApiTestWrapper(BaseTestWrapper):
+    def __init__(self, sylph: SylphSession, client):
+        super().__init__(sylph)
+        self.client = client
+
+
 class CustomAdapter(logging.LoggerAdapter):
     """
     This adapter expects the passed in dict-like object to have a
     'test_details' key, whose value in brackets is prepended to the log message.
     """
+
     def process(self, msg, kwargs):
         return '%s | %s' % (self.extra['test_details'], msg), kwargs
