@@ -15,6 +15,7 @@ class SylphSessionConfig:
     def __init__(self, data):
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
+        self._env_base_url: str = data['test_context']['env_base_url'] if 'env_base_url' in data['test_context'] else None
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
@@ -24,6 +25,10 @@ class SylphSessionConfig:
     @property
     def environment(self) -> str:
         return self._test_env
+
+    @property
+    def env_base_url(self) -> str:
+        return self._env_base_url
 
     @property
     def is_mobile(self) -> bool:
