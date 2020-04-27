@@ -1,8 +1,12 @@
 import sys
 import os
 import logging
+
+import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+
+from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict
 from .sylphsession import SylphSessionConfig, SylphSession
 
 
@@ -79,9 +83,9 @@ class MobileTestWrapper(BaseTestWrapper):
 
 
 class ApiTestWrapper(BaseTestWrapper):
-    def __init__(self, sylph: SylphSession, client):
+    def __init__(self, sylph: SylphSession):
         super().__init__(sylph)
-        self.client = client
+        self.client = SylphApiClient(sylph.config.env_base_url, sylph.log, sylph.config.environment)
 
 
 class CustomAdapter(logging.LoggerAdapter):
@@ -92,3 +96,81 @@ class CustomAdapter(logging.LoggerAdapter):
 
     def process(self, msg, kwargs):
         return '%s | %s' % (self.extra['test_details'], msg), kwargs
+
+
+class SylphApiClient:
+    response_error: ResponseError
+    log: logging.Logger
+
+    def __init__(self, url, log, env):
+        # We do not intend to conduct security testing of the API with this client
+        urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+        self._env = env
+        self._base_url = url
+        self.log = log
+        self._method = None
+        self._target = None
+        self._headers = None
+        self._data = None
+
+        self.contract_error = None
+
+    @property
+    def environment(self):
+        return self._env
+
+    @property
+    def method(self):
+        return self._method
+
+    @property
+    def target(self):
+        return self._target
+
+    def send_request(self, method, url, data=None, params=None, token=None):
+        headers = {'Content-Type': 'application/json'}
+        if token:
+            headers['Authorization'] = f'Bearer {token}'
+
+        import json
+        import requests
+        payload = {} if data is None else json.dumps(data)
+
+        try:
+            self._method = method
+            self._target = url.split('/')[-1]
+            self._headers = headers
+            self._data = data
+
+            response = requests.request(method, url, headers=headers, data=payload, verify=False, params=params)
+
+            if not response.ok:
+                self.response_error = ResponseError(response=response)
+                self.log.warning(f'API Client - Error: '
+                                 f'{self.response_error.error_code} - {self.response_error.error_message}')
+        except Exception as exc:
+            if len(exc.args) > 0:
+                msg = exc.args[0]
+                data_source = SylphDataGenerator.API_REQUEST
+            else:
+                msg = sys.exc_info()[0]
+                data_source = SylphDataGenerator.AUTOMATION_CODE
+
+            err_data = {"errorCode": "UNEXPECTED_ERROR", "errorMessage": msg}
+            err_dict = SylphDataDict(data_source=data_source, data=err_data)
+            self.response_error = ResponseError(data=err_dict)
+            self.log.warning(f'API Client - Error: {msg}')
+            response = self.response_error
+
+        if hasattr(response, 'elapsed'):
+            self.log.debug(f'API Client - Response Elapsed: {response.elapsed}')
+
+        return response
+
+    def process_contract_exception(self, exc):
+        msg = exc.args[0]
+        data_source = SylphDataGenerator.API_REQUEST
+        err_data = {"errorCode": f"{exc.__class__.__name__}", "errorMessage": msg}
+        err_dict = SylphDataDict(data_source=data_source, data=err_data)
+        self.contract_error = ResponseError(data=err_dict)
+        self.log.warning(f'API Client - {exc.__class__.__name__}: {msg}')
