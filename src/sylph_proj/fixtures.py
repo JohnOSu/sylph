@@ -4,7 +4,7 @@ from appium import webdriver as AppiumDriver
 from .sylphsession import SylphSession
 from .factory import SeleniumDriverFactory
 from .factory import AppiumDriverFactory
-from .wrappers import WebTestWrapper
+from .wrappers import WebTestWrapper, ApiTestWrapper
 from .wrappers import MobileTestWrapper
 
 
@@ -43,4 +43,11 @@ def webwrapper(sylph, webdriver) -> WebTestWrapper:
     web = WebTestWrapper(sylph, webdriver)
     yield web
     sylph.log.debug('Web Test Wrapper fixture cleanup...')
+
+
+@pytest.fixture(scope='function')
+def api(sylph):
+    wrapper = ApiTestWrapper(sylph)
+    yield wrapper
+    sylph.log.debug('Api Test Wrapper fixture cleanup...')
 
