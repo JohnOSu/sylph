@@ -138,7 +138,7 @@ class SylphApiClient:
 
         try:
             self._method = method
-            self._target = url.split('/')[-1]
+            self._target = url.split(self._base_url)[-1]
             self._headers = headers
             self._data = data
 
