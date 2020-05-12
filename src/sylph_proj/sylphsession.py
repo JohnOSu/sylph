@@ -127,6 +127,10 @@ class ConfigLoader:
         return data
 
     def _get_sut_env_overrides(self, data):
+        if os.environ.get('SUT_TYPE'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SUT_TYPE')
+            data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
+
         sut_type = data['test_context']['sut_type']
 
         if os.environ.get('TEST_ENV'):
