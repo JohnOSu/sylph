@@ -110,7 +110,8 @@ class ConfigLoader:
 
     def _get_sut_env_overrides(self, data):
         if os.environ.get('SUT_TYPE'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SUT_TYPE')
+            override = os.environ.get('SUT_TYPE')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} SUT_TYPE={override}")
             data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
 
         if not data['test_context']['sut_type']:
@@ -119,21 +120,24 @@ class ConfigLoader:
         sut_type = data['test_context']['sut_type']
 
         if os.environ.get('VPN'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VPN')
+            override = os.environ.get('VPN')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} VPN={override}")
             data['test_context']['vpn'] = os.environ.get('VPN')
 
         if not data['test_context']['vpn']:
             data['test_context']['vpn'] = None # optional config item
 
         if os.environ.get('TEST_ENV'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TEST_ENV')
+            override = os.environ.get('TEST_ENV')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} TEST_ENV={override}")
             data['test_context']['test_env'] = os.environ.get('TEST_ENV')
 
         if not data['test_context']['test_env']:
             raise Exception('No test environment specified')
 
         if os.environ.get('ENV_BASE_URL'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} ENV_BASE_URL')
+            override = os.environ.get('ENV_BASE_URL')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} ENV_BASE_URL={override}")
             data['test_context']['env_base_url'] = os.environ.get('ENV_BASE_URL')
 
         if not data['test_context']['env_base_url']:
@@ -152,36 +156,45 @@ class ConfigLoader:
 
     def _get_env_overrides_mobile(self, data):
         if os.environ.get('DEVICE_NAME'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME')
+            override = os.environ.get('DEVICE_NAME')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME={override}')
             data['desired_caps']['deviceName'] = os.environ.get('DEVICE_NAME')
         if os.environ.get('PLATFORM_NAME'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME')
+            override = os.environ.get('PLATFORM_NAME')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME={override}')
             data['desired_caps']['platformName'] = os.environ.get('PLATFORM_NAME')
         if os.environ.get('PLATFORM_VERSION'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_VERSION')
+            override = os.environ.get('PLATFORM_VERSION')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_VERSION={override}')
             data['desired_caps']['platformVersion'] = os.environ.get('PLATFORM_VERSION')
         if os.environ.get('APP'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} APP')
+            override = os.environ.get('APP')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} APP={override}')
             data['desired_caps']['app'] = os.environ.get('APP')
 
         if os.environ.get('SERVER'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER')
+            override = os.environ.get('SERVER')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER={override}')
             data['exec_target']['server'] = os.environ.get('SERVER')
         if os.environ.get('REAL_DEVICE'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} REAL_DEVICE')
+            override = os.environ.get('REAL_DEVICE')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} REAL_DEVICE={override}')
             data['exec_target']['realDevice'] = os.environ.get('REAL_DEVICE')
 
         return data
 
     def _get_env_overrides_web(self, data):
         if os.environ.get('BROWSER'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER')
+            override = os.environ.get('BROWSER')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER={override}')
             data['desired_caps']['browser'] = os.environ.get('BROWSER')
         if os.environ.get('PLATFORM'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM')
+            override = os.environ.get('PLATFORM')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM={override}')
             data['desired_caps']['platform'] = os.environ.get('PLATFORM')
         if os.environ.get('VERSION'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VERSION')
+            override = os.environ.get('VERSION')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VERSION={override}')
             data['desired_caps']['version'] = os.environ.get('VERSION')
 
         return data
