@@ -101,21 +101,21 @@ class ConfigLoader:
             with open(config) as json_file:
                 data = json.load(json_file)
         except FileNotFoundError:
-            # If not found, get template based on 'SUT_TYPE' env variable.
             self._log.debug('No session_config.json found.')
-            if os.environ.get('SUT_TYPE'):
-                self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SUT_TYPE')
-                data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
-            else:
-                # No sut_type set, abort
-                raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
-
+            data = {}
         # now check for environment overrides
         data = self._get_sut_env_overrides(data)
 
         return data
 
     def _get_sut_env_overrides(self, data):
+        if os.environ.get('SUT_TYPE'):
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SUT_TYPE')
+            data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
+
+        if not data['test_context']['sut_type']:
+            raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
+
         sut_type = data['test_context']['sut_type']
 
         if os.environ.get('VPN'):
