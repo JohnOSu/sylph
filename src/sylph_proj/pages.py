@@ -28,7 +28,7 @@ class BasePage(metaclass=ABCMeta):
     def is_done_loading(self) -> bool:
         pass
 
-    def is_element_displayed(self, elem, wait=10, name=None) -> bool:
+    def is_element_displayed(self, elem, wait=30, name=None) -> bool:
         """Repeated safe check for the specified wait time (seconds) until the element is displayed.
            If not found, return false.
 
