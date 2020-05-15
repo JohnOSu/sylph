@@ -101,85 +101,100 @@ class ConfigLoader:
             with open(config) as json_file:
                 data = json.load(json_file)
         except FileNotFoundError:
-            # If not found, get template based on 'sut_type' env variable.
-            sut_type = os.environ.get('SUT_TYPE')
-            if sut_type:
-                data = self._get_sut_config_template(sut_type)
-            else:
-                # No sut_type, so assume api test sylph
-                data = self._get_sut_config_template(SylphSession.API)
-
+            self._log.debug('No session_config.json found.')
+            data = {}
         # now check for environment overrides
         data = self._get_sut_env_overrides(data)
 
         return data
 
-    def _get_sut_config_template(self, sut_type):
-        if sut_type == SylphSession.MOBILE:
-            data = self._get_config_template_mobile()
-        elif sut_type == SylphSession.WEB:
-            data = self._get_config_template_web()
-        elif sut_type == SylphSession.API:
-            data = self._get_config_template_api()
-        else:
-            raise Exception(f'Unsupported system under test: {sut_type}')
-
-        return data
-
     def _get_sut_env_overrides(self, data):
         if os.environ.get('SUT_TYPE'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SUT_TYPE')
+            override = os.environ.get('SUT_TYPE')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} SUT_TYPE={override}")
             data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
+
+        if not data['test_context']['sut_type']:
+            raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
 
         sut_type = data['test_context']['sut_type']
 
+        if os.environ.get('VPN'):
+            override = os.environ.get('VPN')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} VPN={override}")
+            data['test_context']['vpn'] = os.environ.get('VPN')
+
+        if not data['test_context']['vpn']:
+            data['test_context']['vpn'] = None # optional config item
+
         if os.environ.get('TEST_ENV'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} TEST_ENV')
+            override = os.environ.get('TEST_ENV')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} TEST_ENV={override}")
             data['test_context']['test_env'] = os.environ.get('TEST_ENV')
+
+        if not data['test_context']['test_env']:
+            raise Exception('No test environment specified')
+
+        if os.environ.get('ENV_BASE_URL'):
+            override = os.environ.get('ENV_BASE_URL')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} ENV_BASE_URL={override}")
+            data['test_context']['env_base_url'] = os.environ.get('ENV_BASE_URL')
+
+        if not data['test_context']['env_base_url']:
+            raise Exception('No test environment base URL specified')
 
         if sut_type == SylphSession.MOBILE:
             data = self._get_env_overrides_mobile(data)
         elif sut_type == SylphSession.WEB:
             data = self._get_env_overrides_web(data)
         elif sut_type == SylphSession.API:
-            data = self._get_env_overrides_api(data)
+            pass # because any config would need to be set already as api will likely be needed by the other sut_types
         else:
-            raise Exception(f'Unsupported system under test: {sut_type}')
+            raise Exception(f'Unsupported system under test type: {sut_type}')
 
         return data
 
     def _get_env_overrides_mobile(self, data):
         if os.environ.get('DEVICE_NAME'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME')
+            override = os.environ.get('DEVICE_NAME')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME={override}')
             data['desired_caps']['deviceName'] = os.environ.get('DEVICE_NAME')
         if os.environ.get('PLATFORM_NAME'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME')
+            override = os.environ.get('PLATFORM_NAME')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME={override}')
             data['desired_caps']['platformName'] = os.environ.get('PLATFORM_NAME')
         if os.environ.get('PLATFORM_VERSION'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_VERSION')
+            override = os.environ.get('PLATFORM_VERSION')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_VERSION={override}')
             data['desired_caps']['platformVersion'] = os.environ.get('PLATFORM_VERSION')
         if os.environ.get('APP'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} APP')
+            override = os.environ.get('APP')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} APP={override}')
             data['desired_caps']['app'] = os.environ.get('APP')
 
         if os.environ.get('SERVER'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER')
+            override = os.environ.get('SERVER')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER={override}')
             data['exec_target']['server'] = os.environ.get('SERVER')
         if os.environ.get('REAL_DEVICE'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} REAL_DEVICE')
+            override = os.environ.get('REAL_DEVICE')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} REAL_DEVICE={override}')
             data['exec_target']['realDevice'] = os.environ.get('REAL_DEVICE')
 
         return data
 
     def _get_env_overrides_web(self, data):
         if os.environ.get('BROWSER'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER')
+            override = os.environ.get('BROWSER')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER={override}')
             data['desired_caps']['browser'] = os.environ.get('BROWSER')
         if os.environ.get('PLATFORM'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM')
+            override = os.environ.get('PLATFORM')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM={override}')
             data['desired_caps']['platform'] = os.environ.get('PLATFORM')
         if os.environ.get('VERSION'):
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VERSION')
+            override = os.environ.get('VERSION')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VERSION={override}')
             data['desired_caps']['version'] = os.environ.get('VERSION')
 
         return data
@@ -187,65 +202,6 @@ class ConfigLoader:
     def _get_env_overrides_api(self, data):
         # todo: determine if any additional overrides might be specifically api related
         return data
-
-    @staticmethod
-    def _get_config_template_mobile():
-        return {
-            "test_context": {
-                "sut_type": SylphSession.MOBILE,
-                "test_env": SylphSessionConfig.DEV_ENV
-            },
-            "desired_caps": {
-                "deviceName": None,
-                "platformName": None,
-                "platformVersion": None,
-                "app": None,
-                "automationName": None,
-                "wdaLocalPort": None
-            },
-            "exec_target": {
-                "server": None,
-                "realDevice": None
-            },
-        }
-
-    @staticmethod
-    def _get_config_template_web():
-        return {
-            "test_context": {
-                "sut_type": SylphSession.WEB,
-                "test_env": SylphSessionConfig.DEV_ENV
-            },
-            "desired_caps": {
-                "browser": None,
-                "platform": None,
-                "version": None
-            },
-            "exec_target": {
-                "server": None
-            },
-        }
-
-    @staticmethod
-    def _get_config_template_api():
-        return {
-            "test_context": {
-                "sut_type": SylphSession.API,
-                "test_env": SylphSessionConfig.DEV_ENV
-            },
-            "desired_caps": {
-                "deviceName": None,
-                "platformName": None,
-                "platformVersion": None,
-                "app": None,
-                "automationName": None,
-                "wdaLocalPort": None
-            },
-            "exec_target": {
-                "server": None,
-                "realDevice": None
-            },
-        }
 
 
 class SylphSession:
