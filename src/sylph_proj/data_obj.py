@@ -1,5 +1,6 @@
 import json
 import enum
+from json import JSONDecodeError
 
 from requests import Response
 
@@ -72,7 +73,12 @@ class SylphCollectionDataObject(SylphDataObject):
 
 class ResponseError(SylphDataObject):
     def __init__(self, response: Response = None, data: SylphDataDict = None):
-        super().__init__(response=response, data=data)
+        try:
+            super().__init__(response=response, data=data)
+        except JSONDecodeError:
+            self._src = {}
+            self._src['errorCode'] = response.status_code
+            self._src['errorMessage'] = response.text
 
         self.ok: bool = False
         self.error_code = self._src['errorCode']
