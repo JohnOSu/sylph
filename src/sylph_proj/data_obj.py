@@ -78,7 +78,7 @@ class ResponseError(SylphDataObject):
         except JSONDecodeError:
             self._src = {}
             self._src['errorCode'] = response.status_code
-            self._src['errorMessage'] = response.text
+            self._src['errorMessage'] = response.reason
 
         self.ok: bool = False
         self.error_code = self._src['errorCode']
