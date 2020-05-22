@@ -85,7 +85,7 @@ class MobileTestWrapper(BaseTestWrapper):
 class ApiTestWrapper(BaseTestWrapper):
     def __init__(self, sylph: SylphSession):
         super().__init__(sylph)
-        self.driver = SylphApiDriver(sylph.config.env_base_url, sylph.log, sylph.config.environment)
+        self.driver = SylphApiDriver(sylph.config, sylph.log)
 
 
 class CustomAdapter(logging.LoggerAdapter):
@@ -102,11 +102,12 @@ class SylphApiDriver:
     response_error: ResponseError
     log: logging.Logger
 
-    def __init__(self, url, log, env):
+    def __init__(self, config, log):
         # We do not intend to conduct security testing of the API with this driver
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        self._env = env
-        self._base_url = url
+        self._config = config
+        self._env = config.environment
+        self._base_url = config.env_base_url
         self.log = log
         self._method = None
         self._target = None
@@ -114,6 +115,10 @@ class SylphApiDriver:
         self._data = None
 
         self.contract_error = None
+
+    @property
+    def config(self):
+        return self._config
 
     @property
     def environment(self):
