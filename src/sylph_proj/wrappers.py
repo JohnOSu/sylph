@@ -106,8 +106,6 @@ class SylphApiDriver:
         # We do not intend to conduct security testing of the API with this driver
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
         self._config = config
-        self._env = config.environment
-        self._base_url = config.env_base_url
         self.log = log
         self._method = None
         self._target = None
@@ -117,12 +115,8 @@ class SylphApiDriver:
         self.contract_error = None
 
     @property
-    def config(self):
+    def config(self) -> SylphSessionConfig:
         return self._config
-
-    @property
-    def environment(self):
-        return self._env
 
     @property
     def method(self):
@@ -143,7 +137,7 @@ class SylphApiDriver:
 
         try:
             self._method = method
-            self._target = url.split(self._base_url)[-1]
+            self._target = url.split(self._config.env_base_url)[-1]
             self._headers = headers
             self._data = data
 
