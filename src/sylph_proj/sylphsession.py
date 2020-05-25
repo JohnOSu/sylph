@@ -16,7 +16,7 @@ class SylphSessionConfig:
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
         self._env_base_url: str = data['test_context']['env_base_url'] if 'env_base_url' in data['test_context'] else None
-        self._vpn = data['test_context']['vpn'] if 'vpn' in data['test_context'] else None
+        self._api_version = data['test_context']['api_version'] if 'api_version' in data['test_context'] else None
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
@@ -24,8 +24,8 @@ class SylphSessionConfig:
         self._desired_capabilities: dict = data['desired_caps']
 
     @property
-    def vpn(self) -> str:
-        return self._vpn
+    def api_version(self) -> str:
+        return self._api_version
 
     @property
     def environment(self) -> str:
@@ -119,13 +119,13 @@ class ConfigLoader:
 
         sut_type = data['test_context']['sut_type']
 
-        if os.environ.get('VPN'):
-            override = os.environ.get('VPN')
-            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} VPN={override}")
-            data['test_context']['vpn'] = os.environ.get('VPN')
+        if os.environ.get('API_VERSION'):
+            override = os.environ.get('API_VERSION')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} API_VERSION={override}")
+            data['test_context']['api_version'] = os.environ.get('API_VERSION')
 
-        if not data['test_context']['vpn']:
-            data['test_context']['vpn'] = None # optional config item
+        if not data['test_context']['api_version']:
+            raise Exception('No api version specified')
 
         if os.environ.get('TEST_ENV'):
             override = os.environ.get('TEST_ENV')
