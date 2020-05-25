@@ -16,7 +16,7 @@ class SylphSessionConfig:
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
         self._env_base_url: str = data['test_context']['env_base_url'] if 'env_base_url' in data['test_context'] else None
-        self._api_version = data['test_context']['apiVersion'] if 'apiVersion' in data['test_context'] else None
+        self._api_version = data['test_context']['api_version'] if 'api_version' in data['test_context'] else None
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
@@ -125,7 +125,7 @@ class ConfigLoader:
             data['test_context']['api_version'] = os.environ.get('API_VERSION')
 
         if not data['test_context']['api_version']:
-            data['test_context']['api_version'] = 1
+            raise Exception('No api version specified')
 
         if os.environ.get('TEST_ENV'):
             override = os.environ.get('TEST_ENV')
