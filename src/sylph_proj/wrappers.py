@@ -145,8 +145,10 @@ class SylphApiDriver:
 
             if not response.ok:
                 self.response_error = ResponseError(response=response)
-                self.log.warning(f'API Client - Error: '
-                                 f'{self.response_error.error_code} - {self.response_error.error_message}')
+                self.log.warning(
+                    f'API Client - Error: '
+                    f'{self.response_error.status_code} - {self.response_error.reason}'
+                )
         except Exception as exc:
             if len(exc.args) > 0:
                 msg = exc.args[0]
