@@ -77,10 +77,13 @@ class ResponseError(SylphDataObject):
             super().__init__(response=response, data=data)
         except JSONDecodeError:
             self._src = {}
-            self._src['errorCode'] = response.status_code
-            self._src['errorMessage'] = response.reason
+            self._src['errorCode'] = response.status_code if hasattr(response, 'status_code') else None
+            self._src['errorMessage'] = response.reason if hasattr(response, 'reason') else None
 
         self.ok: bool = False
-        self.error_code = self._src['errorCode']
-        self.error_message = self._src['errorMessage']
-        self.status_code = self.error_code if self.error_code is int else 0
+        self.error_code = self._src['errorCode'] if 'errorCode' in self._src else 0
+        self.error_message = self._src['errorMessage'] if 'errorMessage' in self._src else None
+        if not self.error_message:
+            self.error_message = response.text if hasattr(response, 'text') else None
+        self.status_code = response.status_code if hasattr(response, 'status_code') else self.error_code
+        self.reason = response.reason if hasattr(response, 'reason') else None
