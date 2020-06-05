@@ -126,8 +126,8 @@ class SylphApiDriver:
     def target(self):
         return self._target
 
-    def send_request(self, method, url, data=None, params=None, token=None):
-        headers = {'Content-Type': 'application/json'}
+    def send_request(self, method, url, data=None, params=None, token=None, headers=None):
+        headers = headers if headers else {'Content-Type': 'application/json'}
         if token:
             headers['Authorization'] = f'Bearer {token}'
 
@@ -149,6 +149,8 @@ class SylphApiDriver:
                     f'API Client - Error: '
                     f'{self.response_error.status_code} - {self.response_error.reason}'
                 )
+                if response.text:
+                    self.log.info(response.text)
         except Exception as exc:
             if len(exc.args) > 0:
                 msg = exc.args[0]
