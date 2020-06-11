@@ -122,7 +122,10 @@ class ConfigLoader:
         if os.environ.get('API_VERSION'):
             override = os.environ.get('API_VERSION')
             self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} API_VERSION={override}")
-            data['test_context']['api_version'] = os.environ.get('API_VERSION')
+            try:
+                data['test_context']['api_version'] = int(os.environ.get('API_VERSION'))
+            except ValueError:
+                data['test_context']['api_version'] = os.environ.get('API_VERSION')
 
         if not data['test_context']['api_version']:
             raise Exception('No api version specified')
