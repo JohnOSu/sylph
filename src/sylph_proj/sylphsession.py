@@ -6,12 +6,6 @@ from pathlib import Path
 
 
 class SylphSessionConfig:
-
-    # SUT environment
-    DEV_ENV = 'dev'
-    STAGING_ENV = 'staging'
-    PROD_ENV = 'production'
-
     def __init__(self, data):
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
