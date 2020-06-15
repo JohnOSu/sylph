@@ -7,6 +7,7 @@ from pathlib import Path
 
 class SylphSessionConfig:
     def __init__(self, data):
+        self.geo: str = data['test_context']['geo'] if 'geo' in data['test_context'] else None
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
         self._env_base_url: str = data['test_context']['env_base_url'] if 'env_base_url' in data['test_context'] else None
@@ -103,6 +104,11 @@ class ConfigLoader:
         return data
 
     def _get_sut_env_overrides(self, data):
+        if os.environ.get('GEO'):
+            override = os.environ.get('GEO')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} GEO={override}")
+            data['test_context']['geo'] = os.environ.get('GEO')
+
         if os.environ.get('SUT_TYPE'):
             override = os.environ.get('SUT_TYPE')
             self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} SUT_TYPE={override}")
