@@ -1,4 +1,6 @@
 import pytest
+import time
+from datetime import datetime
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 from .sylphsession import SylphSession
@@ -16,11 +18,40 @@ def sylph() -> SylphSession:
 
 
 @pytest.fixture(scope='function')
-def appdriver(sylph) -> AppiumDriver:
+def appdriver(sylph, request) -> AppiumDriver:
     appdriver = AppiumDriverFactory(sylph).driver
     yield appdriver
+
+    if request.node.rep_setup.failed:
+        sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
+    elif request.node.rep_setup.passed:
+        if request.node.rep_call.failed:
+            driver = request.node.funcargs['appdriver']
+            take_screenshot(sylph, driver, request.node.nodeid)
+
     appdriver.quit()
     sylph.log.debug('Appium Driver fixture cleanup...')
+
+
+def take_screenshot(sylph, driver, nodeid):
+    time.sleep(1)
+    test_details = f'{nodeid}_{datetime.today().strftime("%Y-%m-%d_%H%M%S")}.png'.replace("/","_").replace("::","*")
+    file_name = test_details.split('*')[1]
+    file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
+    sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
+    driver.save_screenshot(file_path)
+
+
+# set up a hook to be able to check if a test has failed
+@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    # execute all other hooks to obtain the report object
+    outcome = yield
+    rep = outcome.get_result()
+
+    # set a report attribute for each phase of a call, which can
+    # be "setup", "call", "teardown"
+    setattr(item, "rep_" + rep.when, rep)
 
 
 @pytest.fixture(scope='function', name='app')
