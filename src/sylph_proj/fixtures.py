@@ -50,34 +50,25 @@ def pytest_runtest_makereport(item, call):
     # execute all other hooks to obtain the report object
     outcome = yield
     rep = outcome.get_result()
-    report = rep
-    extra = getattr(report, 'extra', [])
+
+    extra = getattr(rep, 'extra', [])
 
     # set a report attribute for each phase of a call, which can
     # be "setup", "call", "teardown"
     setattr(item, "rep_" + rep.when, rep)
 
-    if report.when == 'call':
-        xfail = hasattr(report, 'wasxfail')
-        if (report.skipped and xfail) or (report.failed and not xfail):
-            report_directory = os.path.dirname(item.config.option.htmlpath)
-
-            file_name = str(int(round(time.time() * 1000))) + ".png"
-
-            test_details = f'{report.nodeid}.png'.replace("/", "_").replace("::", "*")
+    # if mobile ui fail, prepare html report to display screenshot
+    if rep.when == 'call' and item.funcargs.get('appdriver') and hasattr(item.config.option, 'htmlpath'):
+        xfail = hasattr(rep, 'wasxfail')
+        if (rep.skipped and xfail) or (rep.failed and not xfail):
+            # inject the screenshot name
+            test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
             file_name = test_details.split('*')[1]
+            html = '<div><img src="%s" alt="screenshot" style="width:150px;height:250px;" ' \
+                   'onclick="window.open(this.src)" align="right"/></div>' % file_name
+            extra.append(pytest_html.extras.html(html))
 
-
-            # full_path = os.path.join("C:\Screenshots", file_name)
-            full_path = os.path.join(report_directory, file_name)
-            if item.funcargs.get('appdriver'):
-                #print(f"[INFO] screenshot: {full_path}")
-                item.funcargs['appdriver'].get_screenshot_as_file(full_path)
-                if file_name:
-                    html = '<div><img src="%s" alt="screenshot" style="width:228px;height:304px;" ' \
-                           'onclick="window.open(this.src)" align="right"/></div>' % file_name
-                    extra.append(pytest_html.extras.html(html))
-        report.extra = extra
+        rep.extra = extra
 
 
 @pytest.fixture(scope='function', name='app')
