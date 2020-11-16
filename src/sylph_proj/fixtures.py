@@ -1,3 +1,4 @@
+import os
 import pytest
 import time
 from datetime import datetime
@@ -35,7 +36,7 @@ def appdriver(sylph, request) -> AppiumDriver:
 
 def take_screenshot(sylph, driver, nodeid):
     time.sleep(1)
-    test_details = f'{nodeid}_{datetime.today().strftime("%Y-%m-%d_%H%M%S")}.png'.replace("/","_").replace("::","*")
+    test_details = f'{nodeid}.png'.replace("::","*")
     file_name = test_details.split('*')[1]
     file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
     sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
@@ -45,13 +46,38 @@ def take_screenshot(sylph, driver, nodeid):
 # set up a hook to be able to check if a test has failed
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
 def pytest_runtest_makereport(item, call):
+    pytest_html = item.config.pluginmanager.getplugin('html')
     # execute all other hooks to obtain the report object
     outcome = yield
     rep = outcome.get_result()
+    report = rep
+    extra = getattr(report, 'extra', [])
 
     # set a report attribute for each phase of a call, which can
     # be "setup", "call", "teardown"
     setattr(item, "rep_" + rep.when, rep)
+
+    if report.when == 'call':
+        xfail = hasattr(report, 'wasxfail')
+        if (report.skipped and xfail) or (report.failed and not xfail):
+            report_directory = os.path.dirname(item.config.option.htmlpath)
+
+            file_name = str(int(round(time.time() * 1000))) + ".png"
+
+            test_details = f'{report.nodeid}.png'.replace("/", "_").replace("::", "*")
+            file_name = test_details.split('*')[1]
+
+
+            # full_path = os.path.join("C:\Screenshots", file_name)
+            full_path = os.path.join(report_directory, file_name)
+            if item.funcargs.get('appdriver'):
+                #print(f"[INFO] screenshot: {full_path}")
+                item.funcargs['appdriver'].get_screenshot_as_file(full_path)
+                if file_name:
+                    html = '<div><img src="%s" alt="screenshot" style="width:228px;height:304px;" ' \
+                           'onclick="window.open(this.src)" align="right"/></div>' % file_name
+                    extra.append(pytest_html.extras.html(html))
+        report.extra = extra
 
 
 @pytest.fixture(scope='function', name='app')
