@@ -1,7 +1,5 @@
-import os
 import pytest
 import time
-from datetime import datetime
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 from .sylphsession import SylphSession
