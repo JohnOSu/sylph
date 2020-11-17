@@ -28,6 +28,8 @@ def appdriver(sylph, request) -> AppiumDriver:
             driver = request.node.funcargs['appdriver']
             take_screenshot(sylph, driver, request.node.nodeid)
 
+            sylph.log.info(f'Page Source:\n{driver.page_source}\n')
+
     appdriver.quit()
     sylph.log.debug('Appium Driver fixture cleanup...')
 
