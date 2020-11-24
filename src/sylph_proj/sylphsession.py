@@ -10,7 +10,6 @@ class SylphSessionConfig:
         self.geo: str = data['test_context']['geo'] if 'geo' in data['test_context'] else None
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
-        self._env_base_url: str = data['test_context']['env_base_url'] if 'env_base_url' in data['test_context'] else None
         self._api_version = data['test_context']['api_version'] if 'api_version' in data['test_context'] else None
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
@@ -25,10 +24,6 @@ class SylphSessionConfig:
     @property
     def environment(self) -> str:
         return self._test_env
-
-    @property
-    def env_base_url(self) -> str:
-        return self._env_base_url
 
     @property
     def is_mobile(self) -> bool:
@@ -137,14 +132,6 @@ class ConfigLoader:
 
         if not data['test_context']['test_env']:
             raise Exception('No test environment specified')
-
-        if os.environ.get('ENV_BASE_URL'):
-            override = os.environ.get('ENV_BASE_URL')
-            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} ENV_BASE_URL={override}")
-            data['test_context']['env_base_url'] = os.environ.get('ENV_BASE_URL')
-
-        if not data['test_context']['env_base_url']:
-            raise Exception('No test environment base URL specified')
 
         if sut_type == SylphSession.MOBILE:
             data = self._get_env_overrides_mobile(data)

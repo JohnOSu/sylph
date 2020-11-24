@@ -108,6 +108,7 @@ class SylphApiDriver:
         self._config = config
         self.log = log
         self._method = None
+        self._base_url = None
         self._target = None
         self._headers = None
         self._data = None
@@ -126,6 +127,10 @@ class SylphApiDriver:
     def target(self):
         return self._target
 
+    @property
+    def base_url(self):
+        return self._base_url
+
     def send_request(self, method, url, data=None, params=None, token=None, headers=None):
         headers = headers if headers else {'Content-Type': 'application/json'}
         if token:
@@ -137,7 +142,8 @@ class SylphApiDriver:
 
         try:
             self._method = method
-            self._target = url.split(self._config.env_base_url)[-1]
+            self._base_url = f"{url.split('com')[-1]}.com"
+            self._target = url.split('com')[-1]
             self._headers = headers
             self._data = data
 
