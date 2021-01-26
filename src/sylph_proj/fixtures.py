@@ -57,6 +57,11 @@ def pytest_runtest_makereport(item, call):
     # be "setup", "call", "teardown"
     setattr(item, "rep_" + rep.when, rep)
 
+    # if api fail, set override_cleanup as True
+    if rep.when == 'call' and item.funcargs.get('sylph') and not rep.passed:
+        cfg = item.funcargs['sylph'].config
+        setattr(cfg, 'override_cleanup', True)
+
     # if mobile ui fail, prepare html report to display screenshot
     if rep.when == 'call' and item.funcargs.get('appdriver') and hasattr(item.config.option, 'htmlpath'):
         xfail = hasattr(rep, 'wasxfail')
