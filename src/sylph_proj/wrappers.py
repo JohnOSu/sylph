@@ -134,7 +134,7 @@ class SylphApiDriver:
     def send_request(self, method, url, data=None, params=None, token=None, headers=None):
         headers = headers if headers else {'Content-Type': 'application/json'}
         if token:
-            headers['Authorization'] = f'Bearer {token}'
+            headers['Authorization'] = f'{token}'
 
         import json
         import requests
