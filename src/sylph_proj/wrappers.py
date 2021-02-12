@@ -131,7 +131,10 @@ class SylphApiDriver:
     def base_url(self):
         return self._base_url
 
-    def send_request(self, method, url, data=None, params=None, token=None, headers=None):
+    def send_request(self, method, url, data=None, params=None, token=None, headers=None, validate_json=True):
+        # Initialise contract_error
+        self.contract_error = None
+
         headers = headers if headers else {'Content-Type': 'application/json'}
         if token:
             headers['Authorization'] = f'{token}'
@@ -173,6 +176,15 @@ class SylphApiDriver:
 
         if hasattr(response, 'elapsed'):
             self.log.debug(f'API Client - Response Elapsed: {response.elapsed}')
+
+        # handler to trap responses that are not valid json dictionaries
+        if validate_json and len(response.content) > 0:
+            try:
+                src = json.loads(response.content.decode('utf-8'))
+                if not isinstance(src, dict):
+                    raise Exception(f'Response content is not a dictionary: {src}')
+            except Exception as exc:
+                self.process_contract_exception(exc)
 
         return response
 
