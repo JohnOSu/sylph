@@ -131,7 +131,7 @@ class SylphApiDriver:
     def base_url(self):
         return self._base_url
 
-    def send_request(self, method, url, data=None, params=None, token=None, headers=None, validate_json=True):
+    def send_request(self, method, url, data=None, params=None, token=None, headers=None, validate_json=True, verbose=True):
         # Initialise contract_error
         self.contract_error = None
 
@@ -158,7 +158,7 @@ class SylphApiDriver:
                     f'API Client - Error: '
                     f'{self.response_error.status_code} - {self.response_error.reason}'
                 )
-                if response.text:
+                if verbose and response.text:
                     self.log.info(response.text)
         except Exception as exc:
             if len(exc.args) > 0:
