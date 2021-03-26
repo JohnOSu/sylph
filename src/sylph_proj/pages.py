@@ -22,14 +22,16 @@ class BasePage(metaclass=ABCMeta):
     def __init__(self, tw):
         self.config = tw.config
         self.log = tw.log
-        self.log.debug(f'{self.__class__.__name__} initialiser connected to {self.log.name} logger')
+        self.page_name = self.__class__.__name__
 
     @abstractmethod
-    def is_done_loading(self) -> bool:
-        pass
+    def is_done_loading(self, locator_elem) -> bool:
+        self.log.info(f'{self.page_name} is loading...')
+        is_ready = self.is_element_available(locator_elem, name=self.page_name)
+        return is_ready
 
-    def is_element_displayed(self, elem, wait=30, name=None) -> bool:
-        """Repeated safe check for the specified wait time (seconds) until the element is displayed.
+    def is_element_available(self, elem, wait=30, name=None) -> bool:
+        """Repeated safe check for the specified wait time (seconds) until the element is displayed and enabled.
            If not found, return false.
 
         Args:
@@ -41,13 +43,15 @@ class BasePage(metaclass=ABCMeta):
             True if element is displayed.
 
         """
+        e = None
         beginning = time.time()
         for w in range(0, wait):
 
             try:
                 e = elem()
-                action = e.is_displayed
-                if action() is True:
+                action_displayed = e.is_displayed
+                action_enabled = e.is_enabled
+                if action_displayed() and action_enabled() is True:
                     break
             except:
                 pass
@@ -67,7 +71,7 @@ class BasePage(metaclass=ABCMeta):
                 return False
 
         msg = 'Found Element'
-        self.log.debug(f'{msg}: {name}' if name else msg)
+        self.log.debug(f'{msg}: {e.id}' if e else msg)
         return True
 
     def wait_for_condition(self, condition, wait=10):
@@ -145,7 +149,7 @@ class BasePageMobile(BasePage):
             :param swipe_dir: 'up' to reveal elements below, 'down' to reveal elements above
             :param name: (Optional) A name describing the webelement for logging purposes.
         """
-        located = self.is_element_displayed(lambda: locator(), 2, name)
+        located = self.is_element_available(lambda: locator(), 2, name)
         attempts = 0
         while not located:
             attempts +=1
@@ -159,7 +163,7 @@ class BasePageMobile(BasePage):
             else:
                 self.swipe_right()
 
-            located = self.is_element_displayed(lambda: locator(), 2, name)
+            located = self.is_element_available(lambda: locator(), 2, name)
             if attempts >= max_swipes:
                 break
 
