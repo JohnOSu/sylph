@@ -25,9 +25,14 @@ class BasePage(metaclass=ABCMeta):
         self.page_name = self.__class__.__name__
 
     @abstractmethod
-    def is_done_loading(self, locator_elem) -> bool:
+    def _locator(self, *args):
+        pass
+
+    def _is_done_loading(self, locator_elem) -> bool:
         self.log.info(f'{self.page_name} is loading...')
         is_ready = self.is_element_available(locator_elem, name=self.page_name)
+        if is_ready:
+            self.log.info(f'{self.page_name} is available')
         return is_ready
 
     def is_element_available(self, elem, wait=30, name=None) -> bool:
@@ -61,12 +66,12 @@ class BasePage(metaclass=ABCMeta):
             span = self.span(since, beginning)
             
             span_msg = f'Elapsed seconds: {span}'
-            wait_msg = f'Waiting for element'
+            wait_msg = f'Waiting for {name}'
             wait_msg = f'{wait_msg}: {name} | {span_msg}' if name else f'{wait_msg}. | {span_msg}'
             self.log.debug(wait_msg)
 
             if span >= wait:
-                wait_msg = f'Element {name} not found' if name else 'Element not found'
+                wait_msg = f'{name} not found' if name else 'Element not found'
                 self.log.debug(wait_msg)
                 return False
 
@@ -125,19 +130,25 @@ class BasePage(metaclass=ABCMeta):
 class BasePageWeb(BasePage):
     driver: SeleniumDriver
 
-    def __init__(self, tw: WebTestWrapper):
+    def __init__(self, tw: WebTestWrapper, locator_elem, with_validation):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
+
+        if with_validation and not self._is_done_loading(locator_elem):
+            raise Exception("Web.PAGE_LOAD")
 
 
 class BasePageMobile(BasePage):
     driver: AppiumDriver
 
-    def __init__(self, tw: MobileTestWrapper):
+    def __init__(self, tw: MobileTestWrapper, locator_elem, with_validation):
         self._tw = tw
         super().__init__(tw)
         self.driver = tw.driver
+
+        if with_validation and not self._is_done_loading(locator_elem):
+            raise Exception("App.PAGE_LOAD")
 
     def try_find_element(self, locator, max_swipes=6, swipe_dir=BasePage.SWIPE_UP, name=None):
         """Repeated swipe action (default:up) for the specified number of attempts or until the element is found.
@@ -153,7 +164,7 @@ class BasePageMobile(BasePage):
         attempts = 0
         while not located:
             attempts +=1
-            self.log.debug(f'Swiping: {swipe_dir}')
+            self.log.info(f'Swiping: {swipe_dir}')
             if swipe_dir is BasePage.SWIPE_UP:
                 self.swipe_up()
             elif swipe_dir is BasePage.SWIPE_DOWN:
