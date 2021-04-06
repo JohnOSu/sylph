@@ -13,7 +13,6 @@ from .wrappers import MobileTestWrapper
 def sylph() -> SylphSession:
     sylph = SylphSession()
     yield sylph
-    sylph.log.debug('Sylph Session fixture cleanup...')
 
 
 @pytest.fixture(scope='function')
@@ -31,7 +30,6 @@ def appdriver(sylph, request) -> AppiumDriver:
             sylph.log.info(f'Page Source:\n{driver.page_source}\n')
 
     appdriver.quit()
-    sylph.log.debug('Appium Driver fixture cleanup...')
 
 
 def take_screenshot(sylph, driver, nodeid):
@@ -86,7 +84,7 @@ def pytest_runtest_makereport(item, call):
 def appwrapper(sylph, appdriver) -> MobileTestWrapper:
     app = MobileTestWrapper(sylph, appdriver)
     yield app
-    sylph.log.debug('App Test Wrapper fixture cleanup...')
+    app.cleanup()
 
 
 @pytest.fixture(scope='function')
@@ -101,12 +99,12 @@ def webdriver(sylph) -> SeleniumDriver:
 def webwrapper(sylph, webdriver) -> WebTestWrapper:
     web = WebTestWrapper(sylph, webdriver)
     yield web
-    sylph.log.debug('Web Test Wrapper fixture cleanup...')
+    web.cleanup()
 
 
 @pytest.fixture(scope='function')
 def api(sylph):
     wrapper = ApiTestWrapper(sylph)
     yield wrapper
-    sylph.log.debug('Api Test Wrapper fixture cleanup...')
+    wrapper.cleanup()
 

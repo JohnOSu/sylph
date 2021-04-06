@@ -69,6 +69,10 @@ class BaseTestWrapper:
 
         return caller
 
+    def cleanup(self):
+        if hasattr(self.config, "override_cleanup"):
+            self.log.info(f'Test cleanup override: {getattr(self.config, "override_cleanup")}')
+
 
 class WebTestWrapper(BaseTestWrapper):
     def __init__(self, sylph: SylphSession, driver: SeleniumDriver):
