@@ -63,8 +63,8 @@ def pytest_runtest_makereport(item, call):
         setattr(cfg, 'override_cleanup', True)
         markers = [t for t in rep.longrepr.reprtraceback.reprentries[0].lines if 'pytestrail.case' in t]
         id = markers[0].split("'")[1] if markers else 'No TRID'
-        crash = f'{rep.longrepr.reprcrash.message}' if rep.longrepr.reprcrash else 'No reprcrash.message'
-        msg = f'{id} | {rep.head_line} | {crash}'
+        stderr = rep.capstderr if rep.capstderr else 'No stderr message'
+        msg = f'{id} | {rep.head_line} | {stderr}'
         setattr(cfg, 'override_cleanup_reason', msg)
 
     # if mobile ui fail, prepare html report to display screenshot
