@@ -43,22 +43,8 @@ def take_screenshot(sylph, driver, nodeid):
     driver.save_screenshot(file_path)
 
 
-def pytest_html_results_table_header(cells):
-    cells.insert(1, html.th("TestRail ID"))
-    cells.insert(2, html.th("Potential Issues"))
-    cells.pop() # remove Links
-
-
-def pytest_html_results_table_row(report, cells):
-    if hasattr(report, 'id'):
-        cells.insert(1, html.td(report.id))
-    if hasattr(report, 'defect_id'):
-        cells.insert(2, html.td(report.defect_id))
-    cells.pop() # remove Links
-
-
 # set up a hook to be able to check if a test has failed
-@pytest.hookimpl(tryfirst=True, hookwrapper=True)
+@pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     pytest_html = item.config.pluginmanager.getplugin('html')
     # execute all other hooks to obtain the report object
