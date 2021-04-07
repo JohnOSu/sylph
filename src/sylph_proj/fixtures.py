@@ -49,6 +49,21 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
 
+    # get test case id
+    tr_mark = [i for i in item.own_markers if i.name == 'testrail']
+    if tr_mark:
+        mark = tr_mark[0]
+        rep.id = mark.kwargs['ids']
+    else:
+        rep.id = 'No ID'
+
+    # get test case defect id
+    tr_mark = [i for i in item.own_markers if i.name == 'testrail_defects']
+    if tr_mark:
+        mark = tr_mark[0]
+        rep.defect_id = mark.kwargs['defect_ids']
+
+
     extra = getattr(rep, 'extra', [])
 
     # set a report attribute for each phase of a call, which can
