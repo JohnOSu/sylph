@@ -51,11 +51,11 @@ def pytest_runtest_makereport(item, call):
     outcome = yield
     rep = outcome.get_result()
 
-    # get test case id
+    # get primary test case id
     tr_mark = [i for i in item.own_markers if i.name == 'testrail']
     if tr_mark:
         mark = tr_mark[0]
-        rep.id = mark.kwargs['ids']
+        rep.id = mark.kwargs['ids'][0]
     else:
         rep.id = 'No ID'
 
