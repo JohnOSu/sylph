@@ -64,7 +64,8 @@ def pytest_runtest_makereport(item, call):
     if tr_mark:
         mark = tr_mark[0]
         rep.defect_id = mark.kwargs['defect_ids']
-
+    else:
+        rep.defect_id = ''
 
     extra = getattr(rep, 'extra', [])
 
