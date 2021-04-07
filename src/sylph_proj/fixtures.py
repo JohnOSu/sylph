@@ -74,10 +74,8 @@ def pytest_runtest_makereport(item, call):
     if rep.when == 'call' and item.funcargs.get('sylph') and not rep.passed:
         cfg = item.funcargs['sylph'].config
         setattr(cfg, 'override_cleanup', True)
-        markers = [t for t in rep.longrepr.reprtraceback.reprentries[0].lines if 'pytestrail.case' in t]
-        id = markers[0].split("'")[1] if markers else 'No TRID'
         stderr = rep.capstderr if rep.capstderr else 'No stderr message'
-        msg = f'{id} | {rep.head_line} | {stderr}'
+        msg = f'{rep.id} | {rep.head_line} | {stderr}'
         setattr(cfg, 'override_cleanup_reason', msg)
 
     # if mobile ui fail, prepare html report to display screenshot
