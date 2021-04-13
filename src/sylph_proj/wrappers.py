@@ -6,7 +6,7 @@ import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
 
-from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict
+from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict, ContractViolation
 from .sylphsession import SylphSessionConfig, SylphSession
 
 
@@ -117,7 +117,10 @@ class SylphApiDriver:
         self._headers = None
         self._data = None
 
-        self.contract_error = None
+        # init empty ContractViolation instance
+        err_data = {"dto_name": None, "dto_path": None, "dto_exc": None}
+        err_dict = SylphDataDict(data_source=SylphDataGenerator.AUTOMATION_CODE, data=err_data)
+        self.contract_error = ContractViolation(data=err_dict)
 
     @property
     def config(self) -> SylphSessionConfig:
@@ -136,8 +139,10 @@ class SylphApiDriver:
         return self._base_url
 
     def send_request(self, method, url, data=None, params=None, token=None, headers=None, validate_json=True, verbose=True):
-        # Initialise contract_error
-        self.contract_error = None
+        # init empty ContractViolation instance
+        err_data = {"dto_name": None, "dto_path": None, "dto_exc": None}
+        err_dict = SylphDataDict(data_source=SylphDataGenerator.AUTOMATION_CODE, data=err_data)
+        self.contract_error = ContractViolation(data=err_dict)
 
         headers = headers if headers else {'Content-Type': 'application/json'}
         if token:
@@ -182,7 +187,7 @@ class SylphApiDriver:
             self.log.debug(f'API Client - Response Elapsed: {response.elapsed}')
 
         # handler to trap responses that are not valid json dictionaries
-        if validate_json and len(response.content) > 0:
+        if response.ok and validate_json and len(response.content) > 0:
             try:
                 src = json.loads(response.content.decode('utf-8'))
                 if not isinstance(src, dict):
@@ -192,10 +197,16 @@ class SylphApiDriver:
 
         return response
 
-    def process_contract_exception(self, exc):
-        msg = exc.args[0]
+    def process_contract_exception(self, exc, dto=None):
+        dto_name = getattr(dto, '__name__') if dto else None
+        dto_path = str(dto).split()[-1][1:-2] if dto else None
+        dto_exc = exc.args[0]
+
+        msg = f'{dto_name} {dto_exc}' if dto_name else dto_exc
+
         data_source = SylphDataGenerator.API_REQUEST
-        err_data = {"errorCode": f"{exc.__class__.__name__}", "errorMessage": msg}
+        err_data = {"dto_name": dto_name, "dto_path": dto_path, "dto_exc": dto_exc}
         err_dict = SylphDataDict(data_source=data_source, data=err_data)
-        self.contract_error = ResponseError(data=err_dict)
-        self.log.warning(f'API Client - {exc.__class__.__name__}: {msg}')
+        self.contract_error = ContractViolation(data=err_dict)
+
+        self.log.warning(f'API Client - {msg}')
