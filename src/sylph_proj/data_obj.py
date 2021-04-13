@@ -81,9 +81,18 @@ class ResponseError(SylphDataObject):
             self._src['errorMessage'] = response.reason if hasattr(response, 'reason') else None
 
         self.ok: bool = False
-        self.error_code = self._src['errorCode'] if 'errorCode' in self._src else 0
+        self.error_code = self._src['errorCode'] if 'errorCode' in self._src else None
         self.error_message = self._src['errorMessage'] if 'errorMessage' in self._src else None
         if not self.error_message:
             self.error_message = response.text if hasattr(response, 'text') else None
         self.status_code = response.status_code if hasattr(response, 'status_code') else self.error_code
         self.reason = response.reason if hasattr(response, 'reason') else None
+
+
+class ContractViolation(SylphDataObject):
+    def __init__(self, response: Response = None, data: SylphDataDict = None):
+        super().__init__(response=response, data=data)
+
+        self.dto_name = self._src['dto_name']
+        self.dto_path = self._src['dto_path']
+        self.dto_exc = self._src['dto_exc']
