@@ -187,7 +187,7 @@ class SylphApiDriver:
             self.log.debug(f'API Client - Response Elapsed: {response.elapsed}')
 
         # handler to trap responses that are not valid json dictionaries
-        if validate_json and len(response.content) > 0:
+        if response.ok and validate_json and len(response.content) > 0:
             try:
                 src = json.loads(response.content.decode('utf-8'))
                 if not isinstance(src, dict):
