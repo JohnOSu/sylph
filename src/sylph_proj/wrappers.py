@@ -138,7 +138,9 @@ class SylphApiDriver:
     def base_url(self):
         return self._base_url
 
-    def send_request(self, method, url, data=None, params=None, token=None, headers=None, validate_json=True, verbose=True):
+    def send_request(self, method, url,
+                     data=None, params=None, token=None, headers=None,
+                     validate_json=True, verbose=True, timeout=30):
         # init empty ContractViolation instance
         err_data = {"dto_name": None, "dto_path": None, "dto_exc": None}
         err_dict = SylphDataDict(data_source=SylphDataGenerator.AUTOMATION_CODE, data=err_data)
@@ -159,7 +161,9 @@ class SylphApiDriver:
             self._headers = headers
             self._data = data
 
-            response = requests.request(method, url, headers=headers, data=payload, verify=False, params=params)
+            response = requests.request(method, url,
+                                        headers=headers, data=payload, verify=False, params=params,
+                                        timeout=timeout)
 
             if not response.ok:
                 self.response_error = ResponseError(response=response)
