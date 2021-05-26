@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+from urllib.parse import urlparse
 
 import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
@@ -154,10 +155,12 @@ class SylphApiDriver:
         import requests
         payload = {} if data is None else json.dumps(data)
 
+        uri = urlparse(url)
+
         try:
             self._method = method
-            self._base_url = f"{url.split('com')[-1]}.com"
-            self._target = url.split('com')[-1]
+            self._base_url = f'{uri.scheme}://{uri.netloc}'
+            self._target = uri.path
             self._headers = headers
             self._data = data
 
