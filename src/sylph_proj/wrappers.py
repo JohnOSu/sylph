@@ -5,6 +5,7 @@ from urllib.parse import urlparse
 
 import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
+from requests import RequestException
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
 
 from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict, ContractViolation
@@ -176,18 +177,15 @@ class SylphApiDriver:
                 )
                 if verbose and response.text:
                     self.log.info(response.text)
-        except Exception as exc:
-            if len(exc.args) > 0:
-                msg = exc.args[0]
-                data_source = SylphDataGenerator.API_REQUEST
-            else:
-                msg = sys.exc_info()[0]
-                data_source = SylphDataGenerator.AUTOMATION_CODE
+        except RequestException as exc:
+            data_source = SylphDataGenerator.API_REQUEST
+            err = type(exc).__name__
+            msg = f'{exc.request.url}\n{exc.args[0].args[0]}'
 
-            err_data = {"errorCode": "UNEXPECTED_ERROR", "errorMessage": msg}
+            err_data = {"errorCode": err, "errorMessage": msg}
             err_dict = SylphDataDict(data_source=data_source, data=err_data)
             self.response_error = ResponseError(data=err_dict)
-            self.log.warning(f'API Client - Error: {msg}')
+            self.log.warning(f'API Client - {err}: {msg}')
             response = self.response_error
 
         if hasattr(response, 'elapsed'):
