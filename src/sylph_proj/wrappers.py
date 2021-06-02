@@ -203,9 +203,10 @@ class SylphApiDriver:
         return response
 
     def process_contract_exception(self, exc, dto=None):
+        err = type(exc).__name__
         dto_name = getattr(dto, '__name__') if dto else None
         dto_path = str(dto).split()[-1][1:-2] if dto else None
-        dto_exc = exc.args[0]
+        dto_exc = f'{err}: {exc.args[0]}'
 
         msg = f'{dto_name} {dto_exc}' if dto_name else dto_exc
 
