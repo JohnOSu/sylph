@@ -10,16 +10,11 @@ class SylphSessionConfig:
         self.geo: str = data['test_context']['geo'] if 'geo' in data['test_context'] else None
         self._sut_type: str = data['test_context']['sut_type']
         self._test_env: str = data['test_context']['test_env']
-        self._api_version = data['test_context']['api_version'] if 'api_version' in data['test_context'] else None
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
         self._platform: str = data['desired_caps']['platformName'] if 'platformName' in data['desired_caps'] else None
         self._desired_capabilities: dict = data['desired_caps']
-
-    @property
-    def api_version(self) -> str:
-        return self._api_version
 
     @property
     def environment(self) -> str:
@@ -113,17 +108,6 @@ class ConfigLoader:
             raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
 
         sut_type = data['test_context']['sut_type']
-
-        if os.environ.get('API_VERSION'):
-            override = os.environ.get('API_VERSION')
-            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} API_VERSION={override}")
-            try:
-                data['test_context']['api_version'] = int(os.environ.get('API_VERSION'))
-            except ValueError:
-                data['test_context']['api_version'] = os.environ.get('API_VERSION')
-
-        if not data['test_context']['api_version']:
-            raise Exception('No api version specified')
 
         if os.environ.get('TEST_ENV'):
             override = os.environ.get('TEST_ENV')
