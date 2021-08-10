@@ -195,6 +195,9 @@ class SylphApiDriver:
         if response.ok and validate_json and len(response.content) > 0:
             try:
                 src = json.loads(response.content.decode('utf-8'))
+
+                if isinstance(src, list):
+                    src = src[0]
                 if not isinstance(src, dict):
                     raise Exception(f'Response content is not a dictionary: {src}')
             except Exception as exc:
