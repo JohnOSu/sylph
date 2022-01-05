@@ -118,6 +118,7 @@ class SylphApiDriver:
         self._target = None
         self._headers = None
         self._data = None
+        self._files = None
 
         # init empty ContractViolation instance
         err_data = {"dto_name": None, "dto_path": None, "dto_exc": None}
@@ -141,7 +142,7 @@ class SylphApiDriver:
         return self._base_url
 
     def send_request(self, method, url,
-                     data=None, params=None, token=None, headers=None,
+                     data=None, files=None, params=None, token=None, headers=None,
                      validate_json=True, verbose=True, timeout=30):
         # init empty ContractViolation instance
         err_data = {"dto_name": None, "dto_path": None, "dto_exc": None}
@@ -164,9 +165,10 @@ class SylphApiDriver:
             self._target = uri.path
             self._headers = headers
             self._data = data
+            self._files = files
 
             response = requests.request(method, url,
-                                        headers=headers, data=payload, verify=False, params=params,
+                                        headers=headers, data=payload, files=files, verify=False, params=params,
                                         timeout=timeout)
 
             if not response.ok:
