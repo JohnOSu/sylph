@@ -141,6 +141,18 @@ class SylphApiDriver:
     def base_url(self):
         return self._base_url
 
+    def validate_contract(self):
+        assertion = f'Contract is valid : {self.method} {self.target}'
+        dto_name = self.contract_error.dto_name if self.contract_error.dto_name else None
+        if dto_name:
+            msg = f'{self.contract_error.dto_name} {self.contract_error.dto_exc}'
+        else:
+            msg = self.contract_error.dto_exc
+        label = 'Issue:'
+        assert self.contract_error.dto_exc is None, f'{self.method} {self.target}\n{label: >15} {msg}'
+
+        self.log.info(assertion)
+
     def send_request(self, method, url,
                      data=None, files=None, params=None, token=None, headers=None,
                      validate_json=True, verbose=True, timeout=30):
