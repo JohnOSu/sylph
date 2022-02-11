@@ -7,9 +7,35 @@ import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from requests import RequestException
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
+from tenacity import stop_after_attempt, wait_fixed, retry, before_sleep_log, before_log, retry_if_exception_type, \
+    Retrying
 
 from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict, ContractViolation
 from .sylphsession import SylphSessionConfig, SylphSession
+
+
+logger = logging.getLogger(__name__)
+
+
+def retriable(max_retries=10, retry_interval=5, upon_exception=False, code_block=False):
+    retriable_kwargs = {'stop': stop_after_attempt(max_retries),
+                        'wait': wait_fixed(retry_interval),
+                        'before_sleep': before_sleep_log(logger, logging.DEBUG),
+                        'before': before_log(logger, logging.DEBUG)
+                        }
+
+    if upon_exception:
+        retriable_kwargs['retry'] = retry_if_exception_type(RetryTrigger)
+
+    if code_block:
+        # Tenacity class to retry a block of code
+        return Retrying(**retriable_kwargs)
+    else:
+        return retry(**retriable_kwargs)
+
+
+class RetryTrigger(Exception):
+    pass
 
 
 class BaseTestWrapper:
