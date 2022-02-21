@@ -85,9 +85,7 @@ class BasePage(metaclass=ABCMeta):
                 self.log.info(wait_msg)
                 return False
 
-        msg = f'Found {name} at {e.location}\nLoc in view: {e.location_in_view}\n' \
-              f'If scrolled: {e.location_once_scrolled_into_view}\n' \
-              f'       Rect: {e.rect}'
+        msg = f'Found {name}: {e.rect}'
         self.log.info(msg)
         return True
 
