@@ -85,7 +85,12 @@ class BasePage(metaclass=ABCMeta):
                 self.log.info(wait_msg)
                 return False
 
-        msg = f'Found {name}: {e.rect}'
+        try:
+            coords = e.rect
+        except:
+            coords = 'Coordinates unavailable'
+
+        msg = f'Found {name}: {coords}'
         self.log.info(msg)
         return True
 
