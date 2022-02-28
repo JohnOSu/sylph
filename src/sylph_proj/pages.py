@@ -1,3 +1,4 @@
+import enum
 import time
 import logging
 from abc import ABCMeta, abstractmethod
@@ -8,6 +9,12 @@ from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
 from .sylphsession import SylphSessionConfig
 from .wrappers import WebTestWrapper
 from .wrappers import MobileTestWrapper
+
+
+class ViewSection(enum.Enum):
+    UPPER = 25
+    MIDDLE = 50
+    LOWER = 75
 
 
 class BasePage(metaclass=ABCMeta):
@@ -189,3 +196,45 @@ class BasePageMobile(BasePage):
             located = self.is_element_available(lambda: locator(), 2)
             if attempts >= max_swipes:
                 break
+
+    def R_L_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
+        """
+        :return: coords to swipe screen from Right to Left (Horizontal)
+        """
+        h = Horizontal(self.driver.get_window_size(), start_at)
+        return h.startx, h.starty, h.endx, h.starty, duration
+
+    def L_R_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
+        """
+        :return: coords to swipe screen from Left to Right (Horizontal)
+        """
+        h = Horizontal(self.driver.get_window_size(), start_at)
+        return h.endx, h.starty, h.startx, h.starty, duration
+
+    def B_T_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
+        """
+        :return: coords to swipe screen from Bottom to Top (Vertical)
+        """
+        v = Vertical(self.driver.get_window_size(), start_at)
+        return v.startx, v.starty, v.startx, v.endy, duration
+
+    def T_B_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
+        """
+        :return: coords to swipe screen from Top to Bottom (Vertical)
+        """
+        v = Vertical(self.driver.get_window_size(), start_at)
+        return v.startx, v.endy, v.startx, v.starty, duration
+
+
+class Horizontal:
+    def __init__(self, window_size, start_at: ViewSection = ViewSection.MIDDLE):
+        self.startx = int(window_size['width'] * 0.70)
+        self.endx = int(window_size['width'] * 0.30)
+        self.starty = int(window_size['height'] / 100 * start_at.value)
+
+
+class Vertical:
+    def __init__(self, window_size, start_at: ViewSection = ViewSection.MIDDLE):
+        self.starty = int(window_size['height'] * 0.50)
+        self.endy = int(window_size['height'] * 0.20)
+        self.startx = int(window_size['width'] / 100 * start_at.value)
