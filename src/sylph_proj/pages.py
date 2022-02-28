@@ -179,7 +179,7 @@ class BasePageMobile(BasePage):
         action = kwargs['swipe_action']
         max_swipes = kwargs['max_swipes'] if 'max_swipes' in kwargs else 6
 
-        located = self.is_element_available(lambda: locator(), 2)
+        located = False
         attempts = 0
         while not located:
             attempts += 1
