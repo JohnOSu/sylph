@@ -201,7 +201,7 @@ class BasePageMobile(BasePage):
         """
         :return: coords to swipe screen from Right to Left (Horizontal)
         """
-        h = Horizontal(self.driver.get_window_size(), start_at)
+        h = Horizontal(self.config.is_ios, self.driver.get_window_size(), start_at)
         return h.startx, h.starty, h.endx, h.starty, duration
 
     def L_R_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
@@ -215,26 +215,26 @@ class BasePageMobile(BasePage):
         """
         :return: coords to swipe screen from Bottom to Top (Vertical)
         """
-        v = Vertical(self.driver.get_window_size(), start_at)
+        v = Vertical(self.config.is_ios, self.driver.get_window_size(), start_at)
         return v.startx, v.starty, v.startx, v.endy, duration
 
     def T_B_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
         """
         :return: coords to swipe screen from Top to Bottom (Vertical)
         """
-        v = Vertical(self.driver.get_window_size(), start_at)
+        v = Vertical(self.config.is_ios, self.driver.get_window_size(), start_at)
         return v.startx, v.endy, v.startx, v.starty, duration
 
 
 class Horizontal:
-    def __init__(self, window_size, start_at: ViewSection = ViewSection.MIDDLE):
-        self.startx = int(window_size['width'] * 0.70)
-        self.endx = int(window_size['width'] * 0.30)
+    def __init__(self, is_ios, window_size, start_at: ViewSection = ViewSection.MIDDLE):
+        self.startx = int(window_size['width'] * 0.90 if is_ios else 0.70)
+        self.endx = int(window_size['width'] * 0.10 if is_ios else 0.30)
         self.starty = int(window_size['height'] / 100 * start_at.value)
 
 
 class Vertical:
-    def __init__(self, window_size, start_at: ViewSection = ViewSection.MIDDLE):
-        self.starty = int(window_size['height'] * 0.50)
-        self.endy = int(window_size['height'] * 0.20)
+    def __init__(self, is_ios, window_size, start_at: ViewSection = ViewSection.MIDDLE):
+        self.starty = int(window_size['height'] * 0.80 if is_ios else 0.50)
+        self.endy = int(window_size['height'] * 0.10 if is_ios else 0.20)
         self.startx = int(window_size['width'] / 100 * start_at.value)
