@@ -228,13 +228,13 @@ class BasePageMobile(BasePage):
 
 class Horizontal:
     def __init__(self, is_ios, window_size, start_at: ViewSection = ViewSection.MIDDLE):
-        self.startx = int(window_size['width'] * 0.90 if is_ios else 0.70)
-        self.endx = int(window_size['width'] * 0.10 if is_ios else 0.30)
+        self.startx = int(window_size['width'] * 0.80 if is_ios else 0.70)
+        self.endx = int(window_size['width'] * 0.20 if is_ios else 0.30)
         self.starty = int(window_size['height'] / 100 * start_at.value)
 
 
 class Vertical:
     def __init__(self, is_ios, window_size, start_at: ViewSection = ViewSection.MIDDLE):
-        self.starty = int(window_size['height'] * 0.80 if is_ios else 0.50)
-        self.endy = int(window_size['height'] * 0.10 if is_ios else 0.20)
+        self.starty = int(window_size['height'] * 0.60 if is_ios else 0.50)
+        self.endy = int(window_size['height'] * 0.15 if is_ios else 0.20)
         self.startx = int(window_size['width'] / 100 * start_at.value)
