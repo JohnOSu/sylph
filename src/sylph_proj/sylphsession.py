@@ -9,6 +9,7 @@ class SylphSessionConfig:
     def __init__(self, data):
         self.geo: str = data['test_context']['geo'] if 'geo' in data['test_context'] else None
         self._sut_type: str = data['test_context']['sut_type']
+        self.sut_url_override: str = data['test_context']['sut_url_override'] if 'sut_url_override' in data['test_context'] else None
         self._test_env: str = data['test_context']['test_env']
         self._exec_target_server: str = data['exec_target']['server']
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
@@ -106,6 +107,11 @@ class ConfigLoader:
 
         if not data['test_context']['sut_type']:
             raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
+
+        if os.environ.get('URL_OVERRIDE'):
+            override = os.environ.get('URL_OVERRIDE')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} URL_OVERRIDE={override}")
+            data['test_context']['sut_url_override'] = os.environ.get('URL_OVERRIDE')
 
         sut_type = data['test_context']['sut_type']
 
