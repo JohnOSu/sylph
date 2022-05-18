@@ -1,6 +1,7 @@
 import sys
 import os
 import logging
+import traceback
 from urllib.parse import urlparse
 
 import urllib3
@@ -18,8 +19,6 @@ logger = logging.getLogger(__name__)
 
 
 def custom_before_sleep(retry_state):
-    loglevel = logging.DEBUG
-
     is_function = retry_state.fn
     exception = retry_state.outcome.exception()
     exception_value = f"{exception.__class__.__name__}: {exception}"
@@ -27,14 +26,16 @@ def custom_before_sleep(retry_state):
     if is_function:
         retry_object = _utils.get_callback_name(retry_state.fn)
     else:
-        retry_object = 'Code Block'
+        tb_value = traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__)
+        code_block_tb = tb_value[1].split("\n")[0]
+        retry_object = f'Code Block in{code_block_tb}'
 
     logger.log(
-        loglevel,
+        logging.DEBUG,
         f"Retrying {retry_object} "
         f"in {retry_state.next_action.sleep} seconds "
         f"as it raised {exception_value}, "
-        f"this is the {_utils.to_ordinal(retry_state.attempt_number)} time calling it.",
+        f"this is the {_utils.to_ordinal(retry_state.attempt_number)} time calling it."
     )
 
 
