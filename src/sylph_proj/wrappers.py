@@ -28,7 +28,8 @@ def custom_before_sleep(retry_state):
     else:
         tb_value = traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__)
         code_block_tb = tb_value[1].split("\n")[0]
-        retry_object = f'Code Block in{code_block_tb}'
+        fn = code_block_tb.split()[-1]
+        retry_object = f'Code Block in {fn}'
 
     logger.log(
         logging.DEBUG,
