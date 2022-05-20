@@ -1,14 +1,15 @@
 import sys
 import os
 import logging
+import traceback
 from urllib.parse import urlparse
 
 import urllib3
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from requests import RequestException
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
-from tenacity import stop_after_attempt, wait_fixed, retry, before_sleep_log, before_log, retry_if_exception_type, \
-    Retrying
+from tenacity import stop_after_attempt, wait_fixed, retry, retry_if_exception_type, \
+    Retrying, _utils
 
 from .data_obj import ResponseError, SylphDataGenerator, SylphDataDict, ContractViolation
 from .sylphsession import SylphSessionConfig, SylphSession
@@ -17,11 +18,32 @@ from .sylphsession import SylphSessionConfig, SylphSession
 logger = logging.getLogger(__name__)
 
 
+def custom_before_sleep(retry_state):
+    is_function = retry_state.fn
+    exception = retry_state.outcome.exception()
+    exception_value = f"{exception.__class__.__name__}: {exception}"
+
+    if is_function:
+        retry_object = _utils.get_callback_name(retry_state.fn)
+    else:
+        tb_value = traceback.format_exception(etype=type(exception), value=exception, tb=exception.__traceback__)
+        code_block_tb = tb_value[1].split("\n")[0]
+        fn = code_block_tb.split()[-1]
+        retry_object = f'Code Block in {fn}'
+
+    logger.log(
+        logging.DEBUG,
+        f"Retrying {retry_object} "
+        f"in {retry_state.next_action.sleep} seconds "
+        f"as it raised {exception_value}, "
+        f"this is the {_utils.to_ordinal(retry_state.attempt_number)} time calling it."
+    )
+
+
 def retriable(max_retries=10, retry_interval=5, upon_exception=False, code_block=False):
     retriable_kwargs = {'stop': stop_after_attempt(max_retries),
                         'wait': wait_fixed(retry_interval),
-                        'before_sleep': before_sleep_log(logger, logging.DEBUG),
-                        'before': before_log(logger, logging.DEBUG)
+                        'before_sleep': custom_before_sleep
                         }
 
     if upon_exception:
