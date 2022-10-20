@@ -172,10 +172,14 @@ class ConfigLoader:
             override = os.environ.get('PLATFORM')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM={override}')
             data['desired_caps']['platform'] = os.environ.get('PLATFORM')
-        if os.environ.get('VERSION'):
-            override = os.environ.get('VERSION')
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} VERSION={override}')
-            data['desired_caps']['version'] = os.environ.get('VERSION')
+        if os.environ.get('IS_HEADLESS'):
+            override = os.environ.get('IS_HEADLESS')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} IS_HEADLESS={override}')
+            data['desired_caps']['is_headless'] = os.environ.get('IS_HEADLESS')
+        if os.environ.get('SERVER'):
+            override = os.environ.get('SERVER')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER={override}')
+            data['exec_target']['server'] = os.environ.get('SERVER')
 
         return data
 
