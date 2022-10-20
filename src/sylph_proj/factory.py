@@ -1,3 +1,6 @@
+# from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
+from selenium import webdriver
+
 from .sylphsession import SylphSession, SylphSessionConfig
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
@@ -28,16 +31,30 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
 
     def __init__(self, session):
         super().__init__(session)
-        self.session.log.debug('Initialising selenium driver')
-
-        test_execution_target = self.config.exec_target_server
-
         if self.config.is_chrome:
-            self.driver = SeleniumDriver.Chrome()
-        elif self.config.is_firefox:
-            self.driver = SeleniumDriver.Firefox()
+            init_msg = 'Initialising Selenium driver (Chrome)'
         else:
-            raise Exception(f'Unsupported browser: {self.config.desired_capabilities["browser"]}')
+            raise NotImplementedError('This version of sylph supports only Chrome')
+        is_grid_test = True if self.config.exec_target_server else False
+        is_headless = self.config.desired_capabilities['is_headless']
+
+        if is_grid_test:
+            is_linux = self.config.desired_capabilities['platform'].casefold() == 'linux'
+            self.session.log.debug(f'{init_msg} for remote grid testing...')
+            chrome_options = webdriver.ChromeOptions()
+            if is_headless:
+                chrome_options.add_argument("--headless")
+            if is_linux:
+                chrome_options.add_argument("--no-sandbox")
+                chrome_options.add_argument("--disable-dev-shm-usage")
+
+            self.driver = webdriver.Remote(
+                command_executor=self.config.exec_target_server,
+                options=chrome_options
+            )
+        else:
+            self.session.log.debug(f'{init_msg} for local testing...')
+            self.driver = SeleniumDriver.Chrome()
 
         self.driver.implicitly_wait(10)
         self.driver.maximize_window()
