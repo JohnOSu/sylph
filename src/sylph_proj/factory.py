@@ -31,6 +31,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
 
     def __init__(self, session):
         super().__init__(session)
+        platform = self.config.desired_capabilities['platform']
         if self.config.is_chrome:
             init_msg = 'Initialising Selenium driver (Chrome)'
         else:
@@ -39,21 +40,22 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         is_headless = self.config.desired_capabilities['is_headless']
 
         if is_grid_test:
-            is_linux = self.config.desired_capabilities['platform'].casefold() == 'linux'
-            self.session.log.debug(f'{init_msg} for remote grid testing...')
+            is_linux = platform.casefold() == 'linux'
             chrome_options = webdriver.ChromeOptions()
             if is_headless:
+                init_msg = f'{init_msg[:-1]} - Headless)'
                 chrome_options.add_argument("--headless")
             if is_linux:
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")
 
+            self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
             self.driver = webdriver.Remote(
                 command_executor=self.config.exec_target_server,
                 options=chrome_options
             )
         else:
-            self.session.log.debug(f'{init_msg} for local testing...')
+            self.session.log.debug(f'{init_msg} on {platform} for local testing...')
             self.driver = SeleniumDriver.Chrome()
 
         self.driver.implicitly_wait(10)
