@@ -32,15 +32,22 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
     def __init__(self, session):
         super().__init__(session)
         platform = self.config.desired_capabilities['platform']
+        is_linux = platform.lower() in 'linux'
+        is_grid_test = True if self.config.exec_target_server else False
+        if not isinstance(self.config.desired_capabilities['is_headless'], bool):
+            if self.config.desired_capabilities['is_headless'].lower() in ['true', '1', 'y', 'yes']:
+                is_headless = True
+            else:
+                is_headless = False
+        else:
+            is_headless = self.config.desired_capabilities['is_headless']
+
         if self.config.is_chrome:
             init_msg = 'Initialising Selenium driver (Chrome)'
         else:
             raise NotImplementedError('This version of sylph supports only Chrome')
-        is_grid_test = True if self.config.exec_target_server else False
-        is_headless = self.config.desired_capabilities['is_headless']
 
         if is_grid_test:
-            is_linux = platform.casefold() == 'linux'
             chrome_options = webdriver.ChromeOptions()
             if is_headless:
                 init_msg = f'{init_msg[:-1]} - Headless)'
