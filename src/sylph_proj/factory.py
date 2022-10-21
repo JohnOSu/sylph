@@ -14,6 +14,12 @@ class RemoteWebDriverFactory:
         self.session = session
         self.config = session.config
 
+    def get_bool_cfg_value(self, cfg_key):
+        if not isinstance(self.config.desired_capabilities[cfg_key], bool):
+            return str(self.config.desired_capabilities[cfg_key]).lower() in ['true', '1', 'y', 'yes']
+        else:
+            return self.config.desired_capabilities[cfg_key]
+
 
 class AppiumDriverFactory(RemoteWebDriverFactory):
     driver: AppiumDriver
@@ -34,13 +40,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         platform = self.config.desired_capabilities['platform']
         is_linux = platform.lower() in 'linux'
         is_grid_test = True if self.config.exec_target_server else False
-        if not isinstance(self.config.desired_capabilities['is_headless'], bool):
-            if self.config.desired_capabilities['is_headless'].lower() in ['true', '1', 'y', 'yes']:
-                is_headless = True
-            else:
-                is_headless = False
-        else:
-            is_headless = self.config.desired_capabilities['is_headless']
+        is_headless = self.get_bool_cfg_value('is_headless')
 
         if self.config.is_chrome:
             init_msg = 'Initialising Selenium driver (Chrome)'
