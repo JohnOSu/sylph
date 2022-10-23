@@ -1,5 +1,6 @@
 import pytest
 import time
+from datetime import datetime
 
 from py._xmlgen import html
 from selenium import webdriver as SeleniumDriver
@@ -27,14 +28,14 @@ def appdriver(sylph, request) -> AppiumDriver:
     elif request.node.rep_setup.passed:
         if request.node.rep_call.failed:
             driver = request.node.funcargs['appdriver']
-            take_screenshot(sylph, driver, request.node.nodeid)
+            take_screenshot_mobile(sylph, driver, request.node.nodeid)
 
             sylph.log.info(f'Page Source:\n{driver.page_source}\n')
 
     appdriver.quit()
 
 
-def take_screenshot(sylph, driver, nodeid):
+def take_screenshot_mobile(sylph, driver, nodeid):
     time.sleep(1)
     test_details = f'{nodeid}.png'.replace("::","*")
     file_name = test_details.split('*')[1]
@@ -95,6 +96,37 @@ def pytest_runtest_makereport(item, call):
 
         rep.extra = extra
 
+    # if web ui fail, prepare html report to display screenshot
+    if rep.when == 'call' and item.funcargs.get('webdriver') and hasattr(item.config.option, 'htmlpath'):
+        xfail = hasattr(rep, 'wasxfail')
+        if (rep.skipped and xfail) or (rep.failed and not xfail):
+            # inject the screenshot name
+            test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
+            file_name = test_details.split('*')[1]
+            file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
+            html = '<div><img src="%s" alt="screenshot" style="width:250px;height:150px;" ' \
+                   'onclick="window.open(this.src)" align="right"/></div>' % file_path
+            extra.append(pytest_html.extras.html(html))
+
+        rep.extra = extra
+
+
+# make a screenshot with a name of the test
+def take_screenshot_web(sylph, driver, nodeid):
+    time.sleep(1)
+    test_details = f'{nodeid}.png'.replace("::","*")
+    file_name = test_details.split('*')[1]
+    file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
+    sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
+    driver.save_screenshot(file_path)
+
+    """
+    time.sleep(1)
+    file_name = f'{nodeid}_{datetime.today().strftime("%Y-%m-%d_%H:%M")}.png'.replace("/", "_").replace(
+        "::", "__")
+    driver.save_screenshot(file_name)
+    """
+
 
 @pytest.fixture(scope='function', name='app')
 def appwrapper(sylph, appdriver) -> MobileTestWrapper:
@@ -104,9 +136,19 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
 
 
 @pytest.fixture(scope='function')
-def webdriver(sylph) -> SeleniumDriver:
+def webdriver(sylph, request) -> SeleniumDriver:
     webdriver = SeleniumDriverFactory(sylph).driver
     yield webdriver
+
+    if request.node.rep_setup.failed:
+        sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
+    elif request.node.rep_setup.passed:
+        if request.node.rep_call.failed:
+            driver = request.node.funcargs['webdriver']
+            take_screenshot_web(sylph, driver, request.node.nodeid)
+
+            sylph.log.info(f'Page Source:\n{driver.page_source}\n')
+
     webdriver.quit()
     sylph.log.debug('Selenium Driver fixture cleanup...')
 
