@@ -143,7 +143,8 @@ def webdriver(sylph, request) -> SeleniumDriver:
     if request.node.rep_setup.failed:
         sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
     elif request.node.rep_setup.passed:
-        if request.node.rep_call.failed:
+        need_screenshot = request.node.rep_call.failed or request.node.rep_call.wasxfail
+        if need_screenshot:
             driver = request.node.funcargs['webdriver']
             take_screenshot_web(sylph, driver, request.node.nodeid)
 
