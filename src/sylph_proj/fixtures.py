@@ -104,7 +104,7 @@ def pytest_runtest_makereport(item, call):
             test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
             file_name = test_details.split('*')[1]
             file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
-            html = '<div><img src="%s" alt="screenshot" style="width:250px;height:150px;" ' \
+            html = '<div><img src="%s" alt="screenshot" style="width:192px;height:93px;" ' \
                    'onclick="window.open(this.src)" align="right"/></div>' % file_path
             extra.append(pytest_html.extras.html(html))
 
@@ -143,12 +143,10 @@ def webdriver(sylph, request) -> SeleniumDriver:
     if request.node.rep_setup.failed:
         sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
     elif request.node.rep_setup.passed:
-        need_screenshot = request.node.rep_call.failed or request.node.rep_call.wasxfail
+        need_screenshot = True if request.node.rep_call.wasxfail or request.node.rep_call.failed else False
         if need_screenshot:
             driver = request.node.funcargs['webdriver']
             take_screenshot_web(sylph, driver, request.node.nodeid)
-
-            sylph.log.info(f'Page Source:\n{driver.page_source}\n')
 
     webdriver.quit()
     sylph.log.debug('Selenium Driver fixture cleanup...')
