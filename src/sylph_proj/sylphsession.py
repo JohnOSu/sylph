@@ -50,6 +50,10 @@ class SylphSessionConfig:
         return False if self._browser is None else self._browser.lower() == 'firefox'
 
     @property
+    def is_safari(self) -> bool:
+        return False if self._browser is None else self._browser.lower() == 'safari'
+
+    @property
     def is_android(self) -> bool:
         return False if self._platform is None else self._platform.lower() == 'android'
 
