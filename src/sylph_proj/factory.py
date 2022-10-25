@@ -74,6 +74,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 options=chrome_options
             )
 
+        if is_headless:
+            self.session.log.debug('Headless driver is not supported for local testing.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
         return SeleniumDriver.Chrome()
 
@@ -93,6 +95,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 options=firefox_options
             )
 
+        if is_headless:
+            self.session.log.debug('Headless driver is not supported for local testing.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
         return SeleniumDriver.Firefox()
 
@@ -115,5 +119,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 options=safari_options
             )
 
+        if is_headless:
+            self.session.log.debug('Safari (Headless) driver is not supported.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
         return SeleniumDriver.Safari()
