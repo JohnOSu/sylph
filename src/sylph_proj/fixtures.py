@@ -34,13 +34,43 @@ def appdriver(sylph, request) -> AppiumDriver:
     appdriver.quit()
 
 
-def take_screenshot(sylph, driver, nodeid):
-    time.sleep(1)
-    test_details = f'{nodeid}.png'.replace("::","*")
-    file_name = test_details.split('*')[1]
-    file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
-    sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
-    driver.save_screenshot(file_path)
+@pytest.fixture(scope='function', name='app')
+def appwrapper(sylph, appdriver) -> MobileTestWrapper:
+    app = MobileTestWrapper(sylph, appdriver)
+    yield app
+    app.cleanup()
+
+
+@pytest.fixture(scope='function')
+def webdriver(sylph, request) -> SeleniumDriver:
+    webdriver = SeleniumDriverFactory(sylph).driver
+    yield webdriver
+
+    if request.node.rep_setup.failed:
+        sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
+    elif request.node.rep_setup.passed:
+        xfail = hasattr(request.node.rep_call, 'wasxfail')
+        need_screenshot = True if xfail or request.node.rep_call.failed else False
+        if need_screenshot:
+            driver = request.node.funcargs['webdriver']
+            take_screenshot(sylph, driver, request.node.nodeid)
+
+    webdriver.quit()
+    sylph.log.debug('Selenium Driver fixture cleanup...')
+
+
+@pytest.fixture(scope='function', name='web')
+def webwrapper(sylph, webdriver) -> WebTestWrapper:
+    web = WebTestWrapper(sylph, webdriver)
+    yield web
+    web.cleanup()
+
+
+@pytest.fixture(scope='function')
+def api(sylph):
+    wrapper = ApiTestWrapper(sylph)
+    yield wrapper
+    wrapper.cleanup()
 
 
 # set up a hook to be able to check if a test has failed
@@ -73,7 +103,7 @@ def pytest_runtest_makereport(item, call):
     # be "setup", "call", "teardown"
     setattr(item, "rep_" + rep.when, rep)
 
-    # if api fail, set override_cleanup as True
+    # if fail, set override_cleanup as True
     if rep.when == 'call' and item.funcargs.get('sylph') and not rep.passed:
         cfg = item.funcargs['sylph'].config
         setattr(cfg, 'override_cleanup', True)
@@ -81,46 +111,34 @@ def pytest_runtest_makereport(item, call):
         msg = f'{rep.id} | {rep.head_line} | {stderr}'
         setattr(cfg, 'override_cleanup_reason', msg)
 
-    # if mobile ui fail, prepare html report to display screenshot
-    if rep.when == 'call' and item.funcargs.get('appdriver') and hasattr(item.config.option, 'htmlpath'):
+    is_mobile_ui = True if item.funcargs.get('appdriver') else False
+    is_web_ui = True if item.funcargs.get('webdriver') else False
+
+    if not is_mobile_ui and not is_web_ui:
+        return
+
+    img_size = "width:150px;height:250px;" if is_mobile_ui else "width:512px;height:240px;"
+
+    # if mobile or web ui fail, prepare html report to display screenshot
+    if rep.when == 'call' and hasattr(item.config.option, 'htmlpath'):
         xfail = hasattr(rep, 'wasxfail')
         if (rep.skipped and xfail) or (rep.failed and not xfail):
             # inject the screenshot name
             test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
             file_name = test_details.split('*')[1]
             file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
-            html = '<div><img src="%s" alt="screenshot" style="width:150px;height:250px;" ' \
+            html = f'<div><img src="%s" alt="screenshot" style={img_size} ' \
                    'onclick="window.open(this.src)" align="right"/></div>' % file_path
             extra.append(pytest_html.extras.html(html))
 
         rep.extra = extra
 
 
-@pytest.fixture(scope='function', name='app')
-def appwrapper(sylph, appdriver) -> MobileTestWrapper:
-    app = MobileTestWrapper(sylph, appdriver)
-    yield app
-    app.cleanup()
-
-
-@pytest.fixture(scope='function')
-def webdriver(sylph) -> SeleniumDriver:
-    webdriver = SeleniumDriverFactory(sylph).driver
-    yield webdriver
-    webdriver.quit()
-    sylph.log.debug('Selenium Driver fixture cleanup...')
-
-
-@pytest.fixture(scope='function', name='web')
-def webwrapper(sylph, webdriver) -> WebTestWrapper:
-    web = WebTestWrapper(sylph, webdriver)
-    yield web
-    web.cleanup()
-
-
-@pytest.fixture(scope='function')
-def api(sylph):
-    wrapper = ApiTestWrapper(sylph)
-    yield wrapper
-    wrapper.cleanup()
-
+# make a screenshot with a name of the test
+def take_screenshot(sylph, driver, nodeid):
+    time.sleep(1)
+    test_details = f'{nodeid}.png'.replace("::","*")
+    file_name = test_details.split('*')[1]
+    file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
+    sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
+    driver.save_screenshot(file_path)
