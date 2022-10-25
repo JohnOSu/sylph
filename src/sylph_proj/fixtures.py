@@ -114,7 +114,7 @@ def pytest_runtest_makereport(item, call):
     is_mobile_ui = True if item.funcargs.get('appdriver') else False
     is_web_ui = True if item.funcargs.get('webdriver') else False
 
-    if not is_mobile_ui or not is_web_ui:
+    if not is_mobile_ui and not is_web_ui:
         return
 
     img_size = "width:150px;height:250px;" if is_mobile_ui else "width:512px;height:240px;"
