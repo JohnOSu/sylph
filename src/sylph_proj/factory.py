@@ -60,7 +60,6 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         # In my setup, this is necessary to ensure the chrome instance on my desired monitor is within bounds
         if self.config.is_chrome and not is_grid_test:
             # the previous maximise moves the chrome window to monitor 1 which is smaller than my dev monitor
-            self.driver.implicitly_wait(10)
             self.driver.maximize_window()
 
         self.session.log.debug(f'Browser Window: {self.driver.get_window_size()}')
