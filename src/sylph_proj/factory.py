@@ -1,5 +1,4 @@
 from selenium import webdriver
-from selenium.common.exceptions import SessionNotCreatedException
 
 from .sylphsession import SylphSession, SylphSessionConfig
 from selenium import webdriver as SeleniumDriver
@@ -138,8 +137,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
             with attempt:
                 try:
                     r_wd = action()
-                except SessionNotCreatedException:
-                    raise RetryTrigger(f'Cannot create session: {rd_name}.')
+                except Exception as exc:
+                    raise RetryTrigger(f'{type(exc).__name__} | Cannot create session: {rd_name}.')
 
                 self.session.log.info(f'***DESIRED CAPABILITIES - {rd_name}***')
                 for k, v in r_wd.desired_capabilities.items():
