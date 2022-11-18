@@ -138,7 +138,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 try:
                     r_wd = action()
                 except Exception as exc:
-                    raise RetryTrigger(f'{type(exc).__name__} | Cannot create session: {rd_name}.')
+                    msg = f'{type(exc).__name__} | Cannot create session: {rd_name}.'
+                    self.session.log.info(msg)
+                    raise RetryTrigger(msg)
 
                 self.session.log.info(f'***DESIRED CAPABILITIES - {rd_name}***')
                 for k, v in r_wd.desired_capabilities.items():
