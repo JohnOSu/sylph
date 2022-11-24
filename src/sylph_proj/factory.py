@@ -96,9 +96,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 firefox_options.add_argument("--disable-dev-shm-usage")
 
             self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
-            return webdriver.Remote(
+            return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
-                options=firefox_options
+                options=firefox_options)
             )
 
         if is_headless:
@@ -120,12 +120,47 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 raise NotImplementedError(init_msg)
 
             self.session.log.debug(f'{init_msg} on MAC for remote grid testing (1 thread only)...')
-            return webdriver.Remote(
+            return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
-                options=safari_options
+                options=safari_options)
             )
 
         if is_headless:
             self.session.log.debug('Safari (Headless) driver is not supported.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
         return SeleniumDriver.Safari()
+
+    def retry_get_remote_wd(self, init_msg, action):
+        from . import RetryTrigger
+        rd_name = init_msg.split()[-1]
+        for attempt in self.retriable():
+            with attempt:
+                try:
+                    r_wd = action()
+                except Exception as exc:
+                    msg = f'{type(exc).__name__} | Cannot create session: {rd_name}.'
+                    self.session.log.info(msg)
+                    raise RetryTrigger(msg)
+
+                self.session.log.info(f'***DESIRED CAPABILITIES - {rd_name}***')
+                for k, v in r_wd.desired_capabilities.items():
+                    self.session.log.info(f'{k}: {v}')
+                return r_wd
+
+    def retriable(self, max_retries=2, retry_interval=30, upon_exception=True, code_block=True):
+        from . import RetryTrigger
+        from tenacity import stop_after_attempt, wait_fixed, retry, retry_if_exception_type, \
+            Retrying
+        retriable_kwargs = {'stop': stop_after_attempt(max_retries),
+                            'wait': wait_fixed(retry_interval),
+                            'before_sleep': None
+                            }
+
+        if upon_exception:
+            retriable_kwargs['retry'] = retry_if_exception_type(RetryTrigger)
+
+        if code_block:
+            # Tenacity class to retry a block of code
+            return Retrying(**retriable_kwargs)
+        else:
+            return retry(**retriable_kwargs)
