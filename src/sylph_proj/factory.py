@@ -36,6 +36,12 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
 
     def __init__(self, session):
         super().__init__(session)
+
+        import logging
+        from selenium.webdriver.remote.remote_connection import LOGGER as seleniumLogger
+        seleniumLogger.setLevel(logging.WARNING)
+        logging.getLogger("urllib3").setLevel(logging.WARNING)
+
         platform = self.config.desired_capabilities['platform']
         is_linux = platform.lower() in 'linux'
         is_grid_test = True if self.config.exec_target_server else False
