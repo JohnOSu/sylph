@@ -25,10 +25,12 @@ def appdriver(sylph, request) -> AppiumDriver:
     if request.node.rep_setup.failed:
         sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
     elif request.node.rep_setup.passed:
-        if request.node.rep_call.failed:
-            driver = request.node.funcargs['appdriver']
+        driver = request.node.funcargs['appdriver']
+        xfail = hasattr(request.node.rep_call, 'wasxfail')
+        need_screenshot = True if xfail or request.node.rep_call.failed else False
+        if need_screenshot:
             take_screenshot(sylph, driver, request.node.nodeid)
-
+        if request.node.rep_call.failed:
             sylph.log.info(f'Page Source:\n{driver.page_source}\n')
 
     appdriver.quit()
