@@ -62,7 +62,11 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                                       f'{self.config.desired_capabilities["browser"]}')
 
         self.driver.implicitly_wait(10)
-        self.driver.maximize_window()
+        if is_headless:
+            self.session.log.debug(f'Browser Window: {self.driver.get_window_size()}')
+            return
+        else:
+            self.driver.maximize_window()
         # In my setup, this is necessary to ensure the chrome instance on my desired monitor is within bounds
         if self.config.is_chrome and not is_grid_test:
             # the previous maximise moves the chrome window to monitor 1 which is smaller than my dev monitor
@@ -76,6 +80,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
             if is_headless:
                 init_msg = f'{init_msg[:-1]} - Headless)'
                 chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--window-size=1920,1080")
             if is_linux:
                 chrome_options.add_argument("--no-sandbox")
                 chrome_options.add_argument("--disable-dev-shm-usage")
@@ -97,6 +102,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
             if is_headless:
                 init_msg = f'{init_msg[:-1]} - Headless)'
                 firefox_options.add_argument("--headless")
+                firefox_options.add_argument("--width=1920")
+                firefox_options.add_argument("--height=1080")
             if is_linux:
                 firefox_options.add_argument("--no-sandbox")
                 firefox_options.add_argument("--disable-dev-shm-usage")
@@ -125,7 +132,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 init_msg = f'Safari driver on {platform.upper()} is not supported.'
                 raise NotImplementedError(init_msg)
 
-            self.session.log.debug(f'{init_msg} on MAC for remote grid testing (1 thread only)...')
+            self.session.log.debug(f'{init_msg} on MAC for remote grid testing...')
             return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
                 options=safari_options)
@@ -137,8 +144,10 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         return SeleniumDriver.Safari()
 
     def retry_get_remote_wd(self, init_msg, action):
+        is_headless = self.get_bool_cfg_value('is_headless')
+        nm_arr = init_msg.split()
         from . import RetryTrigger
-        rd_name = init_msg.split()[-1]
+        rd_name = f'{nm_arr[-3]} {nm_arr[-2]} {nm_arr[-1]}' if is_headless else nm_arr[-1]
         for attempt in self.retriable():
             with attempt:
                 try:
