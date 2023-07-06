@@ -57,6 +57,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         elif self.config.is_safari:
             init_msg = f'{init_msg} (Safari)'
             self.driver = self._get_safari_driver(is_grid_test, is_headless, platform, init_msg)
+        elif self.config.is_edge:
+            init_msg = f'{init_msg} (Edge)'
+            self.driver = self._get_edge_driver(is_grid_test, is_linux, is_headless, platform, init_msg)
         else:
             raise NotImplementedError(f'This version of sylph does not support '
                                       f'{self.config.desired_capabilities["browser"]}')
@@ -79,7 +82,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
             chrome_options = webdriver.ChromeOptions()
             if is_headless:
                 init_msg = f'{init_msg[:-1]} - Headless)'
-                chrome_options.add_argument("--headless")
+                chrome_options.add_argument("--headless=new")
                 chrome_options.add_argument("--window-size=1920,1080")
             if is_linux:
                 chrome_options.add_argument("--no-sandbox")
@@ -142,6 +145,28 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
             self.session.log.debug('Safari (Headless) driver is not supported.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
         return SeleniumDriver.Safari()
+
+    def _get_edge_driver(self, is_grid_test, is_linux, is_headless, platform, init_msg):
+        if is_grid_test:
+            edge_options = webdriver.EdgeOptions()
+            if is_headless:
+                init_msg = f'{init_msg[:-1]} - Headless)'
+                edge_options.add_argument("--headless=new")
+                edge_options.add_argument("--window-size=1920,1080")
+            if is_linux:
+                edge_options.add_argument("--no-sandbox")
+                edge_options.add_argument("--disable-dev-shm-usage")
+
+            self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
+            return webdriver.Remote(
+                command_executor=self.config.exec_target_server,
+                options=edge_options
+            )
+
+        if is_headless:
+            self.session.log.debug('Headless driver is not supported for local testing.')
+        self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
+        return SeleniumDriver.Edge()
 
     def retry_get_remote_wd(self, init_msg, action):
         is_headless = self.get_bool_cfg_value('is_headless')
