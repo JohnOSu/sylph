@@ -215,7 +215,7 @@ class SylphApiDriver:
 
         import json
         import requests
-        payload = {} if data is None else json.dumps(data)
+        payload = {} if data is None else json.dumps(data, separators=(',', ':'))
 
         uri = urlparse(url)
 
