@@ -47,17 +47,7 @@ class SylphDataObject:
             self._src = json.loads(response.content.decode('utf-8'))
 
     def __eq__(self, other):
-        source = self.dump_data()
-        target = other.dump_data()
-        if set(source.keys()) == set(target.keys()):
-            for item in source:
-                if isinstance(source[item], dict) or isinstance(source[item], SylphDataObject):
-                    if not source[item] == target[item]:  # this will be recursive if SylphDataObject
-                        return False
-                elif not source[item] == target[item]:
-                    return False
-            return True
-        return False
+        return self.dump_data() == other.dump_data()
 
     def dump_data(self):
         data = {}
