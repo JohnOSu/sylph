@@ -46,6 +46,14 @@ class SylphDataObject:
             self.data_generator = SylphDataGenerator.API_REQUEST
             self._src = json.loads(response.content.decode('utf-8'))
 
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+        try:
+            return self.dump_data() == other.dump_data()
+        except:
+            return False
+
     def dump_data(self):
         data = {}
         for key in self._src.keys():
