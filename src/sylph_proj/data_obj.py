@@ -54,6 +54,12 @@ class SylphDataObject:
         except:
             return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(str(self._src.keys()))
+
     def dump_data(self):
         data = {}
         for key in self._src.keys():
