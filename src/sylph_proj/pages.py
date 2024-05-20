@@ -208,7 +208,7 @@ class BasePageMobile(BasePage):
         """
         :return: coords to swipe screen from Left to Right (Horizontal)
         """
-        h = Horizontal(self.driver.get_window_size(), start_at)
+        h = Horizontal(self.config.is_ios, self.driver.get_window_size(), start_at)
         return h.endx, h.starty, h.startx, h.starty, duration
 
     def B_T_coords(self, duration=500, start_at: ViewSection = ViewSection.MIDDLE):
