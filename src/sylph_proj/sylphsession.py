@@ -143,10 +143,6 @@ class ConfigLoader:
         return data
 
     def _get_env_overrides_mobile(self, data):
-        if os.environ.get('DEVICE_NAME'):
-            override = os.environ.get('DEVICE_NAME')
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} DEVICE_NAME={override}')
-            data['desired_caps']['deviceName'] = os.environ.get('DEVICE_NAME')
         if os.environ.get('PLATFORM_NAME'):
             override = os.environ.get('PLATFORM_NAME')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME={override}')
