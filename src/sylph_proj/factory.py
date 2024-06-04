@@ -3,6 +3,8 @@ from selenium import webdriver
 from .sylphsession import SylphSession, SylphSessionConfig
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
+from appium.options.android import UiAutomator2Options
+from appium.options.ios import XCUITestOptions
 
 
 class RemoteWebDriverFactory:
@@ -25,10 +27,24 @@ class AppiumDriverFactory(RemoteWebDriverFactory):
 
     def __init__(self, session):
         super().__init__(session)
-        self.session.log.debug('Initialising appium driver')
-        desired_caps = self.config.desired_capabilities
+        self.session.log.debug('Setting deviceName capability from platformName')
+        target = self.config.desired_capabilities['platformName']
+        self.config.desired_capabilities['deviceName'] = target
+
+        if self.config.is_ios:
+            target = f'{target[0]}{target[1:3].upper()}'
+            automationName = 'xcuitest'
+            opts = XCUITestOptions().load_capabilities(self.config.desired_capabilities)
+        elif self.config.is_android:
+            target = target.capitalize()
+            automationName = 'uiautomator2'
+            opts = UiAutomator2Options().load_capabilities(self.config.desired_capabilities)
+        else:
+            raise Exception('Unsupported platform')
+
+        self.session.log.debug(f'Initialising appium {automationName} driver for {target} testing...')
         test_execution_target = self.config.exec_target_server
-        self.driver = AppiumDriver.Remote(test_execution_target, desired_caps)
+        self.driver = AppiumDriver.Remote(test_execution_target, options=opts)
 
 
 class SeleniumDriverFactory(RemoteWebDriverFactory):
