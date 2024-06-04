@@ -1,7 +1,6 @@
 import pytest
 import time
 
-from py._xmlgen import html
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 from .sylphsession import SylphSession
