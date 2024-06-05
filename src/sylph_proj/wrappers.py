@@ -31,7 +31,7 @@ def custom_before_sleep(retry_state):
             code_block_tb = tb_value[1].split("\n")[0]
             fn = code_block_tb.split()[-1]
             retry_object = f'Code Block in {fn}'
-        except Exception as exc:
+        except Exception:
             retry_object = 'Code Block in unidentified function'
 
     logger.log(
