@@ -1,7 +1,6 @@
 import pytest
 import time
 
-from py._xmlgen import html
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
 from .sylphsession import SylphSession
@@ -99,7 +98,7 @@ def pytest_runtest_makereport(item, call):
     else:
         rep.defect_id = ''
 
-    extra = getattr(rep, 'extra', [])
+    extras = getattr(rep, 'extras', [])
 
     # set a report attribute for each phase of a call, which can
     # be "setup", "call", "teardown"
@@ -131,9 +130,9 @@ def pytest_runtest_makereport(item, call):
             file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
             html = f'<div><img src="%s" alt="screenshot" style={img_size} ' \
                    'onclick="window.open(this.src)" align="right"/></div>' % file_path
-            extra.append(pytest_html.extras.html(html))
+            extras.append(pytest_html.extras.html(html))
 
-        rep.extra = extra
+        rep.extras = extras
 
 
 # make a screenshot with a name of the test
