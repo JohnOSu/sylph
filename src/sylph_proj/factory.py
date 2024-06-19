@@ -174,9 +174,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 edge_options.add_argument("--disable-dev-shm-usage")
 
             self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
-            return webdriver.Remote(
+            return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
-                options=edge_options
+                options=edge_options)
             )
 
         if is_headless:
