@@ -198,8 +198,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                     self.session.log.info(msg)
                     raise RetryTrigger(msg)
 
-                self.session.log.info(f'***DESIRED CAPABILITIES - {rd_name}***')
-                for k, v in r_wd.desired_capabilities.items():
+                self.session.log.info(f'***REMOTE WEBDRIVER CAPABILITIES - {rd_name}***')
+                for k, v in r_wd.capabilities.items():
                     self.session.log.info(f'{k}: {v}')
                 return r_wd
 
