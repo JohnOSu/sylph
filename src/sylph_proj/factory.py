@@ -105,9 +105,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 chrome_options.add_argument("--disable-dev-shm-usage")
 
             self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
-            return webdriver.Remote(
+            return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
-                options=chrome_options
+                options=chrome_options)
             )
 
         if is_headless:
@@ -174,9 +174,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                 edge_options.add_argument("--disable-dev-shm-usage")
 
             self.session.log.debug(f'{init_msg} on {platform.upper()} for remote grid testing...')
-            return webdriver.Remote(
+            return self.retry_get_remote_wd(init_msg, lambda: webdriver.Remote(
                 command_executor=self.config.exec_target_server,
-                options=edge_options
+                options=edge_options)
             )
 
         if is_headless:
@@ -198,8 +198,8 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
                     self.session.log.info(msg)
                     raise RetryTrigger(msg)
 
-                self.session.log.info(f'***DESIRED CAPABILITIES - {rd_name}***')
-                for k, v in r_wd.desired_capabilities.items():
+                self.session.log.info(f'***REMOTE WEBDRIVER CAPABILITIES - {rd_name}***')
+                for k, v in r_wd.capabilities.items():
                     self.session.log.info(f'{k}: {v}')
                 return r_wd
 
