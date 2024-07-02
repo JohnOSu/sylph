@@ -1,7 +1,9 @@
 import json
 import enum
+import re
+import copy
 from json import JSONDecodeError
-
+import urllib
 from requests import Response
 
 
@@ -44,25 +46,59 @@ class SylphObjectInitException(Exception):
 
 
 class SylphDataObject:
-    data_generator: SylphDataGenerator
-
     def __init__(self, response: Response = None, data: SylphDataDict = None):
         # Store init arg in self._src. If arg is response, transform into a dict.
+        self.metadata = SylphRequestMetadata()
+
         if response is not None and data is not None:
             raise SylphObjectInitException("Must be either a Response or a SylphDataDict")
         if response is None:
             if data is None:
+                self.metadata.data_generator = SylphDataGenerator.AUTOMATION_CODE
                 # must be defining function calls
-                self._src = []
-                self.data_generator = SylphDataGenerator.AUTOMATION_CODE
+                self.metadata.source_data = []
+
             else:
-                if not hasattr(data, 'data_generator'):
+                if not isinstance(data, SylphDataDict):
                     raise SylphObjectInitException("If data is provided, it must be a SylphDataDict")
-                self._src = data
-                self.data_generator = data.data_generator
+                self.metadata = copy.deepcopy(data.metadata)
+                self.metadata.source_data = data
+
         else:
-            self.data_generator = SylphDataGenerator.API_REQUEST
-            self._src = json.loads(response.content.decode('utf-8'))
+            url_split = urllib.parse.urlsplit(response.url)
+
+            pattern = r'\/(v\d+)\/'
+            regex = re.compile(pattern)
+            result = regex.search(url_split.path)
+            if result:
+                match = re.findall(pattern, url_split.path)
+                api_v_str = match[0]
+                if '.' in api_v_str:
+                    api_v_arr = re.split('v|\.', api_v_str)
+                    api_version = int(api_v_arr[1])
+                    api_minor_v = int(api_v_arr[2])
+                    if len(api_v_arr) > 3:
+                        api_patch_v = int(api_v_arr[3])
+                    else:
+                        api_patch_v = None
+                else:
+                    api_version = int(match[0].split('v')[1])
+                    api_minor_v = None
+                    api_patch_v = None
+            else:
+                api_version = None
+
+            self.metadata.data_generator = SylphDataGenerator.API_REQUEST
+            self.metadata.request_url = response.url
+            self.metadata.request_hdr = response.headers
+            self.metadata.api_version = api_version
+            self.metadata.api_minor_v = api_minor_v
+            self.metadata.api_patch_v = api_patch_v
+            self.metadata.source_data = json.loads(response.content.decode('utf-8'))
+
+        # backward compatibility
+        self._src = self.metadata.source_data
+        self.data_generator = self.metadata.data_generator
 
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
