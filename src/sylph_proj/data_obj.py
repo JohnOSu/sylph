@@ -10,13 +10,31 @@ class SylphDataGenerator(enum.Enum):
     API_REQUEST = "api_request"
     APP_UI_INSPECTION = "app"
 
+class SylphRequestMetadata:
+    def __init__(self):
+        self.data_generator = None
+        self.request_url = None
+        self.request_hdr = None
+        self.api_version = None
+        self.api_minor_v = None
+        self.api_patch_v = None
+        self.source_data = None
+
 
 class SylphDataDict(dict):
-    data_generator: SylphDataGenerator
-
-    def __init__(self, data_source: SylphDataGenerator, data: dict):
+    def __init__(self, data_source, data: dict):
         super().__init__()
-        self.data_generator = data_source
+
+        if isinstance(data_source, SylphDataGenerator):
+            self.metadata = SylphRequestMetadata()
+            self.metadata.data_generator = data_source
+        elif isinstance(data_source, SylphRequestMetadata):
+            self.metadata = copy.deepcopy(data_source)
+            self.metadata.source_data = data
+
+        # backward compatibility
+        self.data_generator = self.metadata.data_generator
+
         for keyname in data.keys():
             self[keyname] = data[keyname]
 
