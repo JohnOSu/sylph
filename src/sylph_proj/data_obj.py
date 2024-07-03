@@ -65,28 +65,7 @@ class SylphDataObject:
                 self.metadata.source_data = data
 
         else:
-            url_split = urllib.parse.urlsplit(response.url)
-
-            pattern = r'\/(v\d+)\/'
-            regex = re.compile(pattern)
-            result = regex.search(url_split.path)
-            if result:
-                match = re.findall(pattern, url_split.path)
-                api_v_str = match[0]
-                if '.' in api_v_str:
-                    api_v_arr = re.split('v|\.', api_v_str)
-                    api_version = int(api_v_arr[1])
-                    api_minor_v = int(api_v_arr[2])
-                    if len(api_v_arr) > 3:
-                        api_patch_v = int(api_v_arr[3])
-                    else:
-                        api_patch_v = None
-                else:
-                    api_version = int(match[0].split('v')[1])
-                    api_minor_v = None
-                    api_patch_v = None
-            else:
-                api_version = None
+            api_version, api_minor_v, api_patch_v = get_api_version(response.url)
 
             self.metadata.data_generator = SylphDataGenerator.API_REQUEST
             self.metadata.request_url = response.url
@@ -164,3 +143,32 @@ class ContractViolation(SylphDataObject):
         self.dto_name = self._src['dto_name']
         self.dto_path = self._src['dto_path']
         self.dto_exc = self._src['dto_exc']
+
+
+def get_api_version(url):
+    url_split = urllib.parse.urlsplit(url)
+    pattern = r'(api\/v[0-9]*)'
+    regex = re.compile(pattern)
+    result = regex.search(url_split.path)
+    if result:
+        match = re.findall(pattern, url_split.path)
+        api_v_str = match[0]
+
+        sub_ver_arr = url_split.path.split(api_v_str)
+        if sub_ver_arr[0] == "/":
+            api_version = int(api_v_str.split('v')[1])
+            api_minor_v = None
+            api_patch_v = None
+        else:
+            if '.' in api_v_str:
+                api_v_arr = re.split('v|\.', api_v_str)
+                api_version = int(api_v_arr[1])
+                api_minor_v = int(api_v_arr[2])
+                if len(api_v_arr) > 3:
+                    api_patch_v = int(api_v_arr[3])
+                else:
+                    api_patch_v = None
+    else:
+        api_version = None
+
+    return api_version, api_minor_v, api_patch_v
