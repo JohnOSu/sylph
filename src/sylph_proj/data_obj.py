@@ -146,29 +146,29 @@ class ContractViolation(SylphDataObject):
 
 
 def get_api_version(url):
+    api_version = None
+    api_minor_v = None
+    api_patch_v = None
+
     url_split = urllib.parse.urlsplit(url)
     pattern = r'(api\/v[0-9]*)'
     regex = re.compile(pattern)
     result = regex.search(url_split.path)
     if result:
-        match = re.findall(pattern, url_split.path)
-        api_v_str = match[0]
-
-        sub_ver_arr = url_split.path.split(api_v_str)
-        if sub_ver_arr[0] == "/":
-            api_version = int(api_v_str.split('v')[1])
-            api_minor_v = None
-            api_patch_v = None
-        else:
-            if '.' in api_v_str:
-                api_v_arr = re.split('v|\.', api_v_str)
-                api_version = int(api_v_arr[1])
-                api_minor_v = int(api_v_arr[2])
-                if len(api_v_arr) > 3:
-                    api_patch_v = int(api_v_arr[3])
-                else:
-                    api_patch_v = None
-    else:
-        api_version = None
+        api_v_str = result.string.split('/api/v')[1].split('/')[0]
+        v_str_arr = api_v_str.split('.')
+        api_version = set_version(v_str_arr[0])
+        if len(v_str_arr) > 1:
+            api_minor_v = set_version(v_str_arr[1])
+        if len(v_str_arr) > 2:
+            api_patch_v = set_version(v_str_arr[2])
 
     return api_version, api_minor_v, api_patch_v
+
+
+def set_version(ver_str):
+    try:
+        as_int = int(ver_str)
+        return as_int
+    except:
+        return ver_str
