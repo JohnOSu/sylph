@@ -65,7 +65,7 @@ class SylphDataObject:
                 self.metadata.source_data = data
 
         else:
-            api_version, api_minor_v, api_patch_v = get_api_version(response.url)
+            api_version, api_minor_v, api_patch_v = try_get_api_version(response.url)
 
             self.metadata.data_generator = SylphDataGenerator.API_REQUEST
             self.metadata.request_url = response.url
@@ -145,23 +145,26 @@ class ContractViolation(SylphDataObject):
         self.dto_exc = self._src['dto_exc']
 
 
-def get_api_version(url):
+def try_get_api_version(url):
     api_version = None
     api_minor_v = None
     api_patch_v = None
 
-    url_split = urllib.parse.urlsplit(url)
-    pattern = r'(api\/v[0-9]*)'
-    regex = re.compile(pattern)
-    result = regex.search(url_split.path)
-    if result:
-        api_v_str = result.string.split('/api/v')[1].split('/')[0]
-        v_str_arr = api_v_str.split('.')
-        api_version = set_version(v_str_arr[0])
-        if len(v_str_arr) > 1:
-            api_minor_v = set_version(v_str_arr[1])
-        if len(v_str_arr) > 2:
-            api_patch_v = set_version(v_str_arr[2])
+    try:
+        url_split = urllib.parse.urlsplit(url)
+        pattern = r'(api\/v[0-9]*)'
+        regex = re.compile(pattern)
+        result = regex.search(url_split.path)
+        if result:
+            api_v_str = result.string.split('/api/v')[1].split('/')[0]
+            v_str_arr = api_v_str.split('.')
+            api_version = set_version(v_str_arr[0])
+            if len(v_str_arr) > 1:
+                api_minor_v = set_version(v_str_arr[1])
+            if len(v_str_arr) > 2:
+                api_patch_v = set_version(v_str_arr[2])
+    except:
+        pass
 
     return api_version, api_minor_v, api_patch_v
 
