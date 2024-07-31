@@ -94,8 +94,9 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         self.session.log.debug(f'Browser Window: {self.driver.get_window_size()}')
 
     def _get_chrome_driver(self, is_grid_test, is_linux, is_headless, platform, init_msg):
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_argument("--disable-search-engine-choice-screen")
         if is_grid_test:
-            chrome_options = webdriver.ChromeOptions()
             if is_headless:
                 init_msg = f'{init_msg[:-1]} - Headless)'
                 chrome_options.add_argument("--headless=new")
@@ -113,7 +114,7 @@ class SeleniumDriverFactory(RemoteWebDriverFactory):
         if is_headless:
             self.session.log.debug('Headless driver is not supported for local testing.')
         self.session.log.debug(f'{init_msg} on {platform.upper()} for local testing...')
-        return SeleniumDriver.Chrome()
+        return SeleniumDriver.Chrome(options=chrome_options)
 
     def _get_firefox_driver(self, is_grid_test, is_linux, is_headless, platform, init_msg):
         if is_grid_test:
