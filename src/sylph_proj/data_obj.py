@@ -100,27 +100,26 @@ class SylphDataObject:
 
         return data
 
-    def get_unprocessed_data(self):
-        new_data = []
+    def get_unprocessed_data(self, new_data=None):
+        new_data = [] if new_data is None else new_data
         class_name = self.__class__.__name__
         for key in self._src.keys():
             if hasattr(self, key):
                 item = self.__getattribute__(key)
                 if issubclass(type(item), SylphDataObject):
-                    item.get_unprocessed_data()
+                    new_data = item.get_unprocessed_data(new_data)
             elif isinstance(self._src[key], dict):
                 for sub_key in self._src[key].keys():
                     if hasattr(self, sub_key):
                         sub_item = self.__getattribute__(sub_key)
                         if issubclass(type(sub_item), SylphDataObject):
-                            sub_item.get_unprocessed_data()
+                            new_data = sub_item.get_unprocessed_data(new_data)
                     else:
                         new_data.append(f"{class_name}.{sub_key}")
             else:
                 new_data.append(f"{class_name}.{key}")
-            unprocessed_data = new_data
-        unprocessed_data = new_data
-        return unprocessed_data
+
+        return new_data
 
 
 class SylphCollectionDataObject(SylphDataObject):
