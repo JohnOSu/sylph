@@ -18,6 +18,19 @@ def sylph() -> SylphSession:
 
 @pytest.fixture(scope='function')
 def appdriver(sylph, request) -> AppiumDriver:
+    if sylph.config.is_ios:
+        app_path = sylph.config.desired_capabilities['app']
+        sylph.config.desired_capabilities['app'] = 'com.apple.Preferences'
+
+        driver = AppiumDriverFactory(sylph).driver
+        # clear any tokens or cookies on the device
+        driver.find_element('id', "Safari").click()
+        driver.find_element('id', "Clear History and Website Data").click()
+        driver.find_element('id', "Clear History and Data").click()
+
+        driver.quit()
+        sylph.config.desired_capabilities['app'] = app_path
+
     appdriver = AppiumDriverFactory(sylph).driver
     yield appdriver
 
