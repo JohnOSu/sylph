@@ -40,9 +40,15 @@ def appdriver(sylph, request) -> AppiumDriver:
         xfail = hasattr(request.node.rep_call, 'wasxfail')
         need_screenshot = True if xfail or request.node.rep_call.failed else False
         if need_screenshot:
-            take_screenshot(sylph, appdriver, request.node.nodeid)
+            try:
+                take_screenshot(sylph, appdriver, request.node.nodeid)
+            except Exception as exc:
+                sylph.log.warning(f'Unable to take screenshot: {exc}')
         if request.node.rep_call.failed:
-            sylph.log.info(f'Page Source:\n{appdriver.page_source}\n')
+            try:
+                sylph.log.info(f'Page Source:\n{appdriver.page_source}\n')
+            except Exception as exc:
+                sylph.log.warning(f'Unable to get page_source: {exc}')
 
     appdriver.quit()
 
