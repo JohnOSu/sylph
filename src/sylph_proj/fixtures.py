@@ -18,20 +18,18 @@ def sylph() -> SylphSession:
 
 @pytest.fixture(scope='function')
 def appdriver(sylph, request) -> AppiumDriver:
-    if sylph.config.is_ios:
-        app_path = sylph.config.desired_capabilities['app']
-        sylph.config.desired_capabilities['app'] = 'com.apple.Preferences'
-
-        driver = AppiumDriverFactory(sylph).driver
-        # clear any tokens or cookies on the device
-        driver.find_element('id', "Safari").click()
-        driver.find_element('id', "Clear History and Website Data").click()
-        driver.find_element('id', "Clear History and Data").click()
-
-        driver.quit()
-        sylph.config.desired_capabilities['app'] = app_path
-
     appdriver = AppiumDriverFactory(sylph).driver
+    if sylph.config.is_ios:
+        appdriver.activate_app("com.apple.Preferences")
+        time.sleep(2)
+        # clear any tokens or cookies on the device
+        appdriver.find_element('id', "Safari").click()
+        appdriver.find_element('id', "Clear History and Website Data").click()
+        appdriver.find_element('id', "Clear History and Data").click()
+        # revert to default view
+        appdriver.find_element('class name', "XCUIElementTypeButton").click()
+        appdriver.activate_app("com.LGC.Staging")
+
     yield appdriver
 
     if request.node.rep_setup.failed:
