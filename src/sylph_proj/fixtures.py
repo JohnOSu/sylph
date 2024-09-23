@@ -21,13 +21,15 @@ def appdriver(sylph, request) -> AppiumDriver:
     appdriver = AppiumDriverFactory(sylph).driver
     if sylph.config.is_ios:
         appdriver.activate_app("com.apple.Preferences")
-        time.sleep(2)
+        time.sleep(3)
         # clear any tokens or cookies on the device
         appdriver.find_element('id', "Safari").click()
         appdriver.find_element('id', "Clear History and Website Data").click()
         appdriver.find_element('id', "Clear History and Data").click()
         # revert to default view
         appdriver.find_element('class name', "XCUIElementTypeButton").click()
+        appdriver.terminate_app("com.apple.Preferences")
+        time.sleep(2)
         appdriver.activate_app("com.LGC.Staging")
 
     yield appdriver
@@ -48,7 +50,10 @@ def appdriver(sylph, request) -> AppiumDriver:
             except Exception as exc:
                 sylph.log.warning(f'Unable to get page_source: {exc}')
 
-    appdriver.quit()
+    try:
+        appdriver.quit()
+    except Exception as exc:
+        sylph.log.warning(f'Unable to quit app_driver: {exc}')
 
 
 @pytest.fixture(scope='function', name='app')
