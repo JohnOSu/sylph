@@ -125,7 +125,7 @@ def pytest_runtest_makereport(item, call):
         if (rep.skipped and xfail) or (rep.failed and not xfail):
             # inject the screenshot name
             test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
-            file_name = test_details.split('*')[1]
+            file_name = get_file_name(test_details)
             file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
             html = f'<div><img src="%s" alt="screenshot" style={img_size} ' \
                    'onclick="window.open(this.src)" align="right"/></div>' % file_path
@@ -138,7 +138,17 @@ def pytest_runtest_makereport(item, call):
 def take_screenshot(sylph, driver, nodeid):
     time.sleep(1)
     test_details = f'{nodeid}.png'.replace("::","*")
-    file_name = test_details.split('*')[1]
+    # handle parameterized tests
+    file_name = get_file_name(test_details)
     file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
     sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
     driver.save_screenshot(file_path)
+
+def get_file_name(test_details):
+    # handle parameterized tests
+    file_name = test_details.split('*')[1]
+    if '[' in file_name:
+        file_name = file_name.replace('[', '*').replace(']', '*')
+        file_name_arr = file_name.split('*')
+        file_name = file_name_arr[0] + file_name_arr[-1]
+    return file_name
