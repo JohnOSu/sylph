@@ -126,9 +126,8 @@ def pytest_runtest_makereport(item, call):
             # inject the screenshot name
             test_details = f'{rep.nodeid}.png'.replace("/", "_").replace("::", "*")
             file_name = get_file_name(test_details)
-            file_path = f'{SylphSession.LOGGING_DIR}/{file_name}'
             html = f'<div><img src="%s" alt="screenshot" style={img_size} ' \
-                   'onclick="window.open(this.src)" align="right"/></div>' % file_path
+                   'onclick="window.open(this.src)" align="right"/></div>' % file_name
             extras.append(pytest_html.extras.html(html))
 
         rep.extras = extras
