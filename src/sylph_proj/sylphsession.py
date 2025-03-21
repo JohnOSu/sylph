@@ -201,7 +201,7 @@ class SylphSession:
     FIXTURES = "sylph_proj.fixtures"
     TEST_ROOT_DIR = 'tests'
     LOGGING_DIR = 'test_results'
-    LOGFILE = 'results.log'
+    LOGFILE = 'results'
 
     # Session platform
     MOBILE = 'mobile'
@@ -252,7 +252,13 @@ class SylphSession:
         self.log.setLevel(logging.DEBUG)
 
         log_dir_path = self._get_logging_dir_path()
-        logfile = f'{log_dir_path}/{self.LOGFILE}'
+
+        worker_id = os.environ.get("PYTEST_XDIST_WORKER")
+        if worker_id is not None:
+            logfile = f'{log_dir_path}/{self.LOGFILE}_{worker_id}'
+        else:
+            logfile = f'{log_dir_path}/{self.LOGFILE}'
+        logfile = f'{logfile}.log'
 
         c_handler = logging.StreamHandler()
         f_handler = logging.FileHandler(logfile)
