@@ -34,9 +34,6 @@ class SylphDataDict(dict):
             self.metadata = copy.deepcopy(data_source)
             self.metadata.source_data = data
 
-        # backward compatibility
-        self.data_generator = self.metadata.data_generator
-
         for keyname in data.keys():
             self[keyname] = data[keyname]
 
