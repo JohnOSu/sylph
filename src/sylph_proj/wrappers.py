@@ -240,7 +240,7 @@ class SylphApiDriver:
                     f'API Client - Error: '
                     f'{self.response_error.status_code} - {self.response_error.reason}'
                 )
-                if verbose and response.text:
+                if hasattr(response, 'text'):
                     self.log.info(response.text)
         except RequestException as exc:
             data_source = SylphDataGenerator.API_REQUEST
@@ -253,8 +253,12 @@ class SylphApiDriver:
             self.log.warning(f'API Client - {err}: {msg}')
             response = self.response_error
 
+        if verbose and hasattr(response, 'request') and hasattr(response.request, 'body'):
+            self.log.debug(f'HEADERS: {response.request.headers}')
+            self.log.debug(f'PAYLOAD: {response.request.body}')
+
         if hasattr(response, 'elapsed'):
-            self.log.debug(f'API Client - Response Elapsed: {response.elapsed}')
+            self.log.debug(f'ELAPSED: {response.elapsed}')
 
         # handler to trap responses that are not valid json dictionaries
         if response.ok and validate_json and len(response.content) > 0:
