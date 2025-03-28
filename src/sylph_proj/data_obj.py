@@ -86,6 +86,14 @@ class SylphDataObject:
     def __hash__(self):
         return hash(str(self.metadata.source_data.keys()))
 
+    @property
+    def source(self):
+        return self.metadata.source_data
+
+    @property
+    def origin(self):
+        return self.metadata.data_generator
+
     def dump_data(self):
         data = {}
         for key in self.metadata.source_data.keys():
