@@ -84,25 +84,27 @@ class SylphDataObject:
         return not self.__eq__(other)
 
     def __hash__(self):
-        return hash(str(self._src.keys()))
+        return hash(str(self.metadata.source_data.keys()))
 
     def dump_data(self):
         data = {}
-        for key in self._src.keys():
-            data[key] = self._src[key].dump_data() if issubclass(type(self._src[key]), SylphDataObject) else self._src[key]
+        for key in self.metadata.source_data.keys():
+            data[key] = (self.metadata.source_data[key].dump_data()
+                         if issubclass(type(self.metadata.source_data[key]), SylphDataObject)
+                         else self.metadata.source_data[key])
 
         return data
 
     def get_unprocessed_data(self, new_data=None):
         new_data = [] if new_data is None else new_data
         class_name = self.__class__.__name__
-        for key in self._src.keys():
+        for key in self.metadata.source_data.keys():
             if hasattr(self, key):
                 item = self.__getattribute__(key)
                 if issubclass(type(item), SylphDataObject):
                     new_data = item.get_unprocessed_data(new_data)
-            elif isinstance(self._src[key], dict):
-                for sub_key in self._src[key].keys():
+            elif isinstance(self.metadata.source_data[key], dict):
+                for sub_key in self.metadata.source_data[key].keys():
                     if hasattr(self, sub_key):
                         sub_item = self.__getattribute__(sub_key)
                         if issubclass(type(sub_item), SylphDataObject):
@@ -154,9 +156,9 @@ class ContractViolation(SylphDataObject):
     def __init__(self, response: Response = None, data: SylphDataDict = None):
         super().__init__(response=response, data=data)
 
-        self.dto_name = self._src['dto_name']
-        self.dto_path = self._src['dto_path']
-        self.dto_exc = self._src['dto_exc']
+        self.dto_name = self.metadata.source_data['dto_name']
+        self.dto_path = self.metadata.source_data['dto_path']
+        self.dto_exc = self.metadata.source_data['dto_exc']
 
 
 def try_get_api_version(url):
