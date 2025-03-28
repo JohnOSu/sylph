@@ -75,10 +75,6 @@ class SylphDataObject:
             self.metadata.api_patch_v = api_patch_v
             self.metadata.source_data = json.loads(response.content.decode('utf-8'))
 
-        # backward compatibility
-        self._src = self.metadata.source_data
-        self.data_generator = self.metadata.data_generator
-
     def __eq__(self, other):
         if not isinstance(other, self.__class__):
             return False
