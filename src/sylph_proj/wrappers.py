@@ -304,5 +304,13 @@ class SylphApiClient:
     def get(self, **kwargs):
         return self.driver.send_request(method='GET', **kwargs)
 
+    def deserialize(self, response, dto):
+        if response.ok or hasattr(response, 'status_code'):
+            try:
+                response_obj = dto(response=response)
+                return response_obj
+            except Exception as exc:
+                self.driver.process_contract_exception(exc, dto)
+
     def validate_contract(self):
         self.driver.validate_contract()
