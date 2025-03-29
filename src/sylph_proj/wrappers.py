@@ -298,12 +298,30 @@ class SylphApiClient:
         self.driver = driver
         self.log = self.driver.log
 
-    def post(self, **kwargs):
-        return self.driver.send_request(method='POST', **kwargs)
-
     def get(self, **kwargs):
         return self.driver.send_request(method='GET', **kwargs)
 
+    def put(self, **kwargs):
+        return self.driver.send_request(method='PUT', **kwargs)
+
+    def post(self, **kwargs):
+        return self.driver.send_request(method='POST', **kwargs)
+
+    def delete(self, **kwargs):
+        return self.driver.send_request(method='DELETE', **kwargs)
+
+    def patch(self, **kwargs):
+        return self.driver.send_request(method='PATCH', **kwargs)
+
+    def head(self, **kwargs):
+        return self.driver.send_request(method='HEAD', **kwargs)
+
+    def options(self, **kwargs):
+        return self.driver.send_request(method='OPTIONS', **kwargs)
+
+    def trace(self, **kwargs):
+        return self.driver.send_request(method='TRACE', **kwargs)
+    
     def deserialize(self, response, dto):
         if response.ok or hasattr(response, 'status_code'):
             try:
