@@ -125,23 +125,6 @@ class SylphDataObject:
         return new_data
 
 
-class SylphCollectionDataObject(SylphDataObject):
-    def __init__(self, response: Response = None, data: SylphDataDict = None):
-        super().__init__(response, data)
-        self._items = []
-
-    def __getitem__(self, idx):
-        return self._items[idx]
-
-    @property
-    def items(self) -> []:
-        return self._items
-
-    @property
-    def count(self):
-        return len(self._items)
-
-
 class ResponseError(SylphDataObject):
     def __init__(self, response: Response = None, data: SylphDataDict = None):
         try:

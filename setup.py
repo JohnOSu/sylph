@@ -4,7 +4,7 @@ setup(
     name='sylph',
     description='A lightweight python test automation library',
 
-    version='2.0.beta5',
+    version='2.0.beta6',
     author="John O'Sullivan",
     author_email='johnosull9@hotmail.com',
     url='https://www.linkedin.com/in/johnosull9/',
