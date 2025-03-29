@@ -321,7 +321,7 @@ class SylphApiClient:
 
     def trace(self, **kwargs):
         return self.driver.send_request(method='TRACE', **kwargs)
-    
+
     def deserialize(self, response, dto):
         if response.ok or hasattr(response, 'status_code'):
             try:
