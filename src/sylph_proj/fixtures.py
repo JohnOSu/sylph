@@ -133,6 +133,21 @@ def pytest_runtest_makereport(item, call):
         rep.extras = extras
 
 
+@pytest.hookimpl(tryfirst=True)
+def pytest_sessionfinish(session, exitstatus):
+    from pytest_metadata.plugin import metadata_key
+    mdks = [i for i in session.config.stash[metadata_key]]
+    for item in mdks:
+        if 'GIT' in item:
+            continue
+        elif 'Platform' in item:
+            continue
+        elif 'Python' in item:
+            continue
+        else:
+            del (session.config.stash[metadata_key][item])
+
+
 # make a screenshot with a name of the test
 def take_screenshot(sylph, driver, nodeid):
     time.sleep(1)
