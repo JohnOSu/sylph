@@ -44,7 +44,7 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
 
 
 @pytest.fixture(scope='function', name='web_pw')
-def pwwrapper(sylph):
+def pwwrapper(sylph, request):
     web_pw = PwTestWrapper(sylph)
     if web_pw.config.is_async:
         from playwright.async_api import async_playwright
@@ -55,12 +55,17 @@ def pwwrapper(sylph):
 
     with pw() as playwright:
         PlaywrightInstanceFactory.initialise(web_pw, playwright)
-        #browser = playwright.chromium.launch(headless=web_pw.config.is_headless)
-        #web_pw.browser = browser
-        #page = browser.new_page()
-        #web_pw.page = page
         yield web_pw
-        #browser.close()
+
+        if request.node.rep_setup.failed:
+            sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
+        elif request.node.rep_setup.passed:
+            xfail = hasattr(request.node.rep_call, 'wasxfail')
+            need_screenshot = True if xfail or request.node.rep_call.failed else False
+            if need_screenshot:
+                driver = request.node.funcargs['web_pw']
+                take_screenshot(sylph, driver, request.node.nodeid)
+
         web_pw.browser.close()
 
 
@@ -156,21 +161,6 @@ def pytest_runtest_makereport(item, call):
         rep.extras = extras
 
 
-@pytest.hookimpl(tryfirst=True)
-def pytest_sessionfinish(session, exitstatus):
-    from pytest_metadata.plugin import metadata_key
-    mdks = [i for i in session.config.stash[metadata_key]]
-    for item in mdks:
-        if 'GIT' in item:
-            continue
-        elif 'Platform' in item:
-            continue
-        elif 'Python' in item:
-            continue
-        else:
-            del (session.config.stash[metadata_key][item])
-
-
 # make a screenshot with a name of the test
 def take_screenshot(sylph, driver, nodeid):
     time.sleep(1)
@@ -179,7 +169,11 @@ def take_screenshot(sylph, driver, nodeid):
     file_name = get_file_name(test_details)
     file_path = f'{sylph.project_path.parent}/{sylph.LOGGING_DIR}/{file_name}'
     sylph.log.warning(f'TEST FAIL | Screenshot saved as: {file_path}')
-    driver.save_screenshot(file_path)
+    if isinstance(driver, PwTestWrapper):
+        driver.page.screenshot(path=file_path)
+    else:
+        driver.save_screenshot(file_path)
+
 
 def get_file_name(test_details):
     # handle parameterized tests

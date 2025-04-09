@@ -1,3 +1,4 @@
 Appium-Python-Client>=4.0.0
 tenacity>=8.3.0
 playwright>=1.51.0
+pytest-metadata>=3.1.1
