@@ -3,6 +3,8 @@ import time
 
 from selenium import webdriver as SeleniumDriver
 from appium import webdriver as AppiumDriver
+
+from . import PwTestWrapper, PlaywrightInstanceFactory
 from .sylphsession import SylphSession
 from .factory import SeleniumDriverFactory
 from .factory import AppiumDriverFactory
@@ -39,6 +41,27 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
     app = MobileTestWrapper(sylph, appdriver)
     yield app
     app.cleanup()
+
+
+@pytest.fixture(scope='function', name='web_pw')
+def pwwrapper(sylph):
+    web_pw = PwTestWrapper(sylph)
+    if web_pw.config.is_async:
+        from playwright.async_api import async_playwright
+        pw = async_playwright
+    else:
+        from playwright.sync_api import sync_playwright
+        pw = sync_playwright
+
+    with pw() as playwright:
+        PlaywrightInstanceFactory.initialise(web_pw, playwright)
+        #browser = playwright.chromium.launch(headless=web_pw.config.is_headless)
+        #web_pw.browser = browser
+        #page = browser.new_page()
+        #web_pw.page = page
+        yield web_pw
+        #browser.close()
+        web_pw.browser.close()
 
 
 @pytest.fixture(scope='function')
