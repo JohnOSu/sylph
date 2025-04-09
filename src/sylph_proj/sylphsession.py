@@ -15,6 +15,7 @@ class SylphSessionConfig:
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
         self._platform: str = data['desired_caps']['platformName'] if 'platformName' in data['desired_caps'] else None
+        self._is_async: str = data['desired_caps']['is_async'] if 'is_async' in data['desired_caps'] else None
         self._desired_capabilities: dict = data['desired_caps']
 
     @property
@@ -28,6 +29,20 @@ class SylphSessionConfig:
     @property
     def is_web(self) -> bool:
         return self._sut_type.lower() == SylphSession.WEB
+
+    @property
+    def is_web_pw(self) -> bool:
+        return self._sut_type.lower() == SylphSession.WEB_PW
+
+    @property
+    def is_async(self) -> bool:
+        return bool(self._is_async)
+
+    @property
+    def is_headless(self) -> bool:
+        if 'is_headless' in self._desired_capabilities:
+            return bool(self._desired_capabilities['is_headless'])
+        return False
 
     @property
     def is_api(self) -> bool:
@@ -44,6 +59,14 @@ class SylphSessionConfig:
     @property
     def is_chrome(self) -> bool:
         return False if self._browser is None else self._browser.lower() == 'chrome'
+
+    @property
+    def is_chromium(self) -> bool:
+        return False if self._browser is None else self._browser.lower() == 'chromium'
+
+    @property
+    def is_webkit(self) -> bool:
+        return False if self._browser is None else self._browser.lower() == 'webkit'
 
     @property
     def is_firefox(self) -> bool:
@@ -135,6 +158,9 @@ class ConfigLoader:
             data = self._get_env_overrides_mobile(data)
         elif sut_type == SylphSession.WEB:
             data = self._get_env_overrides_web(data)
+        elif sut_type == SylphSession.WEB_PW:
+            data = self._get_env_overrides_web(data)
+            data = self._get_env_overrides_web_pw(data)
         elif sut_type == SylphSession.API:
             pass # because any config would need to be set already as api will likely be needed by the other sut_types
         else:
@@ -187,6 +213,14 @@ class ConfigLoader:
 
         return data
 
+    def _get_env_overrides_web_pw(self, data):
+        if os.environ.get('IS_ASYNC'):
+            override = os.environ.get('IS_ASYNC')
+            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} IS_ASYNC={override}')
+            data['desired_caps']['is_async'] = os.environ.get('IS_ASYNC')
+
+        return data
+
     def _get_env_overrides_api(self, data):
         # todo: determine if any additional overrides might be specifically api related
         return data
@@ -206,6 +240,7 @@ class SylphSession:
     # Session platform
     MOBILE = 'mobile'
     WEB = 'web'
+    WEB_PW = 'web-pw'
     API = 'api'
 
     def __init__(self):
