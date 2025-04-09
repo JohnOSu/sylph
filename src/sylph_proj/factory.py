@@ -22,6 +22,21 @@ class RemoteWebDriverFactory:
             return self.config.desired_capabilities[cfg_key]
 
 
+class PlaywrightInstanceFactory:
+    @staticmethod
+    def initialise(web_pw, playwright):
+        web_pw.driver = playwright
+        if web_pw.config.is_chromium:
+            web_pw.browser = web_pw.driver.chromium.launch(headless=web_pw.config.is_headless)
+        elif web_pw.config.is_firefox:
+            web_pw.browser = web_pw.driver.firefox.launch(headless=web_pw.config.is_headless)
+        elif web_pw.config.is_webkit:
+            web_pw.browser = web_pw.driver.webkit.launch(headless=web_pw.config.is_headless)
+
+        page = web_pw.browser.new_page()
+        web_pw.page = page
+
+
 class AppiumDriverFactory(RemoteWebDriverFactory):
     driver: AppiumDriver
 
