@@ -46,6 +46,7 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
 @pytest.fixture(scope='function', name='web_pw')
 def pwwrapper(sylph, request):
     web_pw = PwTestWrapper(sylph)
+    web_pw.log.debug('Initialising Playwright Sync API')
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as playwright:
