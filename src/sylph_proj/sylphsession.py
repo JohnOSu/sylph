@@ -8,7 +8,7 @@ from pathlib import Path
 class SylphSessionConfig:
     def __init__(self, data):
         self.geo: str = data['test_context']['geo'] if 'geo' in data['test_context'] else None
-        self._sut_type: str = data['test_context']['sut_type']
+        self._engine: str = data['test_context']['engine']
         self.sut_url_override: str = data['test_context']['sut_url_override'] if 'sut_url_override' in data['test_context'] else None
         self._test_env: str = data['test_context']['test_env']
         self._exec_target_server: str = data['exec_target']['server']
@@ -23,16 +23,20 @@ class SylphSessionConfig:
         return self._test_env
 
     @property
-    def is_mobile(self) -> bool:
-        return self._sut_type.lower() == SylphSession.MOBILE
+    def is_api(self) -> bool:
+        return self._engine.lower() == SylphSession.API
 
     @property
-    def is_web(self) -> bool:
-        return self._sut_type.lower() == SylphSession.WEB
+    def is_appium(self) -> bool:
+        return self._engine.lower() == SylphSession.APPIUM
 
     @property
-    def is_web_pw(self) -> bool:
-        return self._sut_type.lower() == SylphSession.WEB_PW
+    def is_playwright(self) -> bool:
+        return self._engine.lower() == SylphSession.PLAYWRIGHT
+
+    @property
+    def is_selenium(self) -> bool:
+        return self._engine.lower() == SylphSession.SELENIUM
 
     @property
     def is_async(self) -> bool:
@@ -43,10 +47,6 @@ class SylphSessionConfig:
         if 'is_headless' in self._desired_capabilities:
             return bool(self._desired_capabilities['is_headless'])
         return False
-
-    @property
-    def is_api(self) -> bool:
-        return self._sut_type.lower() == SylphSession.API
 
     @property
     def desired_capabilities(self) -> dict:
@@ -131,20 +131,20 @@ class ConfigLoader:
             self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} GEO={override}")
             data['test_context']['geo'] = os.environ.get('GEO')
 
-        if os.environ.get('SUT_TYPE'):
-            override = os.environ.get('SUT_TYPE')
-            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} SUT_TYPE={override}")
-            data['test_context']['sut_type'] = os.environ.get('SUT_TYPE')
+        if os.environ.get('ENGINE'):
+            override = os.environ.get('ENGINE')
+            self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} ENGINE={override}")
+            data['test_context']['engine'] = os.environ.get('ENGINE')
 
-        if not data['test_context']['sut_type']:
-            raise Exception("Cannot determine the subject under test. No SUT_TYPE environment variable set")
+        if not data['test_context']['engine']:
+            raise Exception("Cannot determine the test execution engine. No ENGINE environment variable set")
 
         if os.environ.get('URL_OVERRIDE'):
             override = os.environ.get('URL_OVERRIDE')
             self._log.debug(f"{ConfigLoader.OVERRIDE_MSG} URL_OVERRIDE={override}")
             data['test_context']['sut_url_override'] = os.environ.get('URL_OVERRIDE')
 
-        sut_type = data['test_context']['sut_type']
+        engine = data['test_context']['engine']
 
         if os.environ.get('TEST_ENV'):
             override = os.environ.get('TEST_ENV')
@@ -154,21 +154,21 @@ class ConfigLoader:
         if not data['test_context']['test_env']:
             raise Exception('No test environment specified')
 
-        if sut_type == SylphSession.MOBILE:
-            data = self._get_env_overrides_mobile(data)
-        elif sut_type == SylphSession.WEB:
-            data = self._get_env_overrides_web(data)
-        elif sut_type == SylphSession.WEB_PW:
-            data = self._get_env_overrides_web(data)
-            data = self._get_env_overrides_web_pw(data)
-        elif sut_type == SylphSession.API:
-            pass # because any config would need to be set already as api will likely be needed by the other sut_types
+        if engine == SylphSession.APPIUM:
+            data = self._get_env_overrides_appium(data)
+        elif engine == SylphSession.SELENIUM:
+            data = self._get_env_overrides_selenium(data)
+        elif engine == SylphSession.PLAYWRIGHT:
+            data = self._get_env_overrides_selenium(data)
+            data = self._get_env_overrides_playwright(data)
+        elif engine == SylphSession.API:
+            pass # No overrides necessary
         else:
-            raise Exception(f'Unsupported system under test type: {sut_type}')
+            raise Exception(f'Unsupported test engine: {engine}')
 
         return data
 
-    def _get_env_overrides_mobile(self, data):
+    def _get_env_overrides_appium(self, data):
         if os.environ.get('PLATFORM_NAME'):
             override = os.environ.get('PLATFORM_NAME')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} PLATFORM_NAME={override}')
@@ -193,7 +193,7 @@ class ConfigLoader:
 
         return data
 
-    def _get_env_overrides_web(self, data):
+    def _get_env_overrides_selenium(self, data):
         if os.environ.get('BROWSER'):
             override = os.environ.get('BROWSER')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER={override}')
@@ -213,7 +213,7 @@ class ConfigLoader:
 
         return data
 
-    def _get_env_overrides_web_pw(self, data):
+    def _get_env_overrides_playwright(self, data):
         if os.environ.get('IS_ASYNC'):
             override = os.environ.get('IS_ASYNC')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} IS_ASYNC={override}')
@@ -237,11 +237,12 @@ class SylphSession:
     LOGGING_DIR = 'test_results'
     LOGFILE = 'results'
 
-    # Session platform
-    MOBILE = 'mobile'
-    WEB = 'web'
-    WEB_PW = 'web-pw'
+    # Session test execution engine
     API = 'api'
+    APPIUM = 'appium'
+    SELENIUM = 'selenium'
+    PLAYWRIGHT = 'playwright'
+
 
     def __init__(self):
         self.project_path = self._get_solution_project_path()

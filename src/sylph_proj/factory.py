@@ -32,7 +32,14 @@ class PlaywrightInstanceFactory:
             web_pw.browser = web_pw.driver.firefox.launch(headless=web_pw.config.is_headless)
         elif web_pw.config.is_webkit:
             web_pw.browser = web_pw.driver.webkit.launch(headless=web_pw.config.is_headless)
-
+        elif web_pw.config.is_chrome:
+            web_pw.browser = web_pw.driver.chromium.launch(channel='chrome', headless=web_pw.config.is_headless)
+        elif web_pw.config.is_edge:
+            web_pw.browser = web_pw.driver.chromium.launch(channel='msedge', headless=web_pw.config.is_headless)
+        elif web_pw.browser.is_safari:
+            raise NotImplementedError('Playwright does not support Safari. Use WebKit instead.')
+        else:
+            raise Exception('Unsupported browser')
         page = web_pw.browser.new_page()
         web_pw.page = page
 
