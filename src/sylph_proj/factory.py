@@ -26,22 +26,27 @@ class PlaywrightInstanceFactory:
     @staticmethod
     def initialise(web_pw, playwright):
         web_pw.driver = playwright
+        browser_name="Undefined"
         if web_pw.config.is_chromium:
+            browser_name = "Chromium"
             web_pw.browser = web_pw.driver.chromium.launch(headless=web_pw.config.is_headless)
         elif web_pw.config.is_firefox:
+            browser_name = "Firefox"
             web_pw.browser = web_pw.driver.firefox.launch(headless=web_pw.config.is_headless)
         elif web_pw.config.is_webkit:
+            browser_name = "WebKit"
             web_pw.browser = web_pw.driver.webkit.launch(headless=web_pw.config.is_headless)
         elif web_pw.config.is_chrome:
+            browser_name = "Chrome"
             web_pw.browser = web_pw.driver.chromium.launch(channel='chrome', headless=web_pw.config.is_headless)
         elif web_pw.config.is_edge:
+            browser_name = "MSEdge"
             web_pw.browser = web_pw.driver.chromium.launch(channel='msedge', headless=web_pw.config.is_headless)
         elif web_pw.browser.is_safari:
             raise NotImplementedError('Playwright does not support Safari. Use WebKit instead.')
         else:
             raise Exception('Unsupported browser')
-        executable = web_pw.browser.browser_type.executable_path.split('.app')[0].split('/')[-1]
-        web_pw.log.debug(f'Initialised {executable} v{web_pw.browser.version} browser')
+        web_pw.log.debug(f'Initialised {browser_name} v{web_pw.browser.version} browser')
 
         page = web_pw.browser.new_page()
         web_pw.page = page
