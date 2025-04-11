@@ -40,6 +40,9 @@ class PlaywrightInstanceFactory:
             raise NotImplementedError('Playwright does not support Safari. Use WebKit instead.')
         else:
             raise Exception('Unsupported browser')
+        executable = web_pw.browser.browser_type.executable_path.split('.app')[0].split('/')[-1]
+        web_pw.log.debug(f'Initialised {executable} v{web_pw.browser.version} browser')
+
         page = web_pw.browser.new_page()
         web_pw.page = page
 
