@@ -46,14 +46,9 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
 @pytest.fixture(scope='function', name='web_pw')
 def pwwrapper(sylph, request):
     web_pw = PwTestWrapper(sylph)
-    if web_pw.config.is_async:
-        from playwright.async_api import async_playwright
-        pw = async_playwright
-    else:
-        from playwright.sync_api import sync_playwright
-        pw = sync_playwright
+    from playwright.sync_api import sync_playwright
 
-    with pw() as playwright:
+    with sync_playwright() as playwright:
         PlaywrightInstanceFactory.initialise(web_pw, playwright)
         yield web_pw
 

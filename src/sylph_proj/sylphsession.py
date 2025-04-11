@@ -15,7 +15,6 @@ class SylphSessionConfig:
         self._real_device = data['exec_target']['realDevice'] if 'realDevice' in data['exec_target'] else None
         self._browser: str = data['desired_caps']['browser'] if 'browser' in data['desired_caps'] else None
         self._platform: str = data['desired_caps']['platformName'] if 'platformName' in data['desired_caps'] else None
-        self._is_async: str = data['desired_caps']['is_async'] if 'is_async' in data['desired_caps'] else None
         self._desired_capabilities: dict = data['desired_caps']
 
     @property
@@ -37,10 +36,6 @@ class SylphSessionConfig:
     @property
     def is_selenium(self) -> bool:
         return self._engine.lower() == SylphSession.SELENIUM
-
-    @property
-    def is_async(self) -> bool:
-        return bool(self._is_async)
 
     @property
     def is_headless(self) -> bool:
@@ -156,11 +151,8 @@ class ConfigLoader:
 
         if engine == SylphSession.APPIUM:
             data = self._get_env_overrides_appium(data)
-        elif engine == SylphSession.SELENIUM:
-            data = self._get_env_overrides_selenium(data)
-        elif engine == SylphSession.PLAYWRIGHT:
-            data = self._get_env_overrides_selenium(data)
-            data = self._get_env_overrides_playwright(data)
+        elif engine == SylphSession.SELENIUM or engine == SylphSession.PLAYWRIGHT:
+            data = self._get_env_overrides_web(data)
         elif engine == SylphSession.API:
             pass # No overrides necessary
         else:
@@ -193,7 +185,7 @@ class ConfigLoader:
 
         return data
 
-    def _get_env_overrides_selenium(self, data):
+    def _get_env_overrides_web(self, data):
         if os.environ.get('BROWSER'):
             override = os.environ.get('BROWSER')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} BROWSER={override}')
@@ -210,14 +202,6 @@ class ConfigLoader:
             override = os.environ.get('SERVER')
             self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} SERVER={override}')
             data['exec_target']['server'] = os.environ.get('SERVER')
-
-        return data
-
-    def _get_env_overrides_playwright(self, data):
-        if os.environ.get('IS_ASYNC'):
-            override = os.environ.get('IS_ASYNC')
-            self._log.debug(f'{ConfigLoader.OVERRIDE_MSG} IS_ASYNC={override}')
-            data['desired_caps']['is_async'] = os.environ.get('IS_ASYNC')
 
         return data
 
