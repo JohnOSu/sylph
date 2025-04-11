@@ -7,7 +7,7 @@ from appium.webdriver.webdriver import WebDriver as AppiumDriver
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
 
 from .sylphsession import SylphSessionConfig
-from .wrappers import WebTestWrapper
+from .wrappers import WebTestWrapper, PwTestWrapper
 from .wrappers import MobileTestWrapper
 
 
@@ -17,7 +17,16 @@ class ViewSection(enum.Enum):
     LOWER = 75
 
 
-class BasePage(metaclass=ABCMeta):
+class BasePagePw:
+    def __init__(self, web_pw: PwTestWrapper):
+        self.driver = web_pw.driver
+        self.browser = web_pw.browser
+        self.page = web_pw.page
+        self.log = web_pw.log
+        self.config = web_pw.config
+
+
+class BasePageSe(metaclass=ABCMeta):
     log: logging.Logger
     config: SylphSessionConfig
 
@@ -149,7 +158,7 @@ class BasePage(metaclass=ABCMeta):
         return abs(int(f"{span:.0f}"))
 
 
-class BasePageWeb(BasePage):
+class BasePageWeb(BasePageSe):
     driver: SeleniumDriver
 
     def __init__(self, tw: WebTestWrapper, locator_elem, with_validation):
@@ -161,7 +170,7 @@ class BasePageWeb(BasePage):
             raise Exception("Web.PAGE_LOAD")
 
 
-class BasePageMobile(BasePage):
+class BasePageMobile(BasePageSe):
     driver: AppiumDriver
 
     def __init__(self, tw: MobileTestWrapper, locator_elem, with_validation):
