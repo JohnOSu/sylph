@@ -83,11 +83,11 @@ def webdriver(sylph, request) -> SeleniumDriver:
     sylph.log.debug('Selenium Driver fixture cleanup...')
 
 
-@pytest.fixture(scope='function', name='web')
-def webwrapper(sylph, webdriver) -> WebTestWrapper:
-    web = WebTestWrapper(sylph, webdriver)
-    yield web
-    web.cleanup()
+@pytest.fixture(scope='function', name='web_se')
+def webwrapper(sylph, webdriver):
+    web_se = WebTestWrapper(sylph, webdriver)
+    yield web_se
+    web_se.cleanup()
 
 
 @pytest.fixture(scope='function')
