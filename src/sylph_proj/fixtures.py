@@ -43,26 +43,26 @@ def appwrapper(sylph, appdriver) -> MobileTestWrapper:
     app.cleanup()
 
 
-@pytest.fixture(scope='function', name='web_pw')
-def pwwrapper(sylph, request):
+@pytest.fixture(name='web_pw')
+def playwright_wrapper(playwright, sylph, request):
     web_pw = PwTestWrapper(sylph)
     web_pw.log.debug('Initialising Playwright Sync API')
-    from playwright.sync_api import sync_playwright
 
-    with sync_playwright() as playwright:
-        PlaywrightInstanceFactory.initialise(web_pw, playwright)
-        yield web_pw
+    PlaywrightInstanceFactory.initialise(web_pw, playwright)
 
-        if request.node.rep_setup.failed:
-            sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
-        elif request.node.rep_setup.passed:
-            xfail = hasattr(request.node.rep_call, 'wasxfail')
-            need_screenshot = True if xfail or request.node.rep_call.failed else False
-            if need_screenshot:
-                driver = request.node.funcargs['web_pw']
-                take_screenshot(sylph, driver, request.node.nodeid)
+    yield web_pw
 
-        web_pw.browser.close()
+    if request.node.rep_setup.failed:
+        sylph.log.warning(f'TEST SETUP FAIL: {request.node.nodeid}')
+    elif request.node.rep_setup.passed:
+        xfail = hasattr(request.node.rep_call, 'wasxfail')
+        need_screenshot = True if xfail or request.node.rep_call.failed else False
+        if need_screenshot:
+            driver = request.node.funcargs['web_pw']
+            take_screenshot(sylph, driver, request.node.nodeid)
+
+    web_pw.page.close()
+    web_pw.browser.close()
 
 
 @pytest.fixture(scope='function')
