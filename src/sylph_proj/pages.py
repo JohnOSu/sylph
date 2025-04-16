@@ -4,6 +4,7 @@ import logging
 from abc import ABCMeta, abstractmethod
 
 from appium.webdriver.webdriver import WebDriver as AppiumDriver
+from playwright.sync_api import Playwright, Browser, Page
 from selenium.webdriver.remote.webdriver import WebDriver as SeleniumDriver
 
 from .sylphsession import SylphSessionConfig
@@ -19,11 +20,19 @@ class ViewSection(enum.Enum):
 
 class BasePagePw:
     def __init__(self, web_pw: PwTestWrapper):
-        self.driver = web_pw.driver
-        self.browser = web_pw.browser
-        self.page = web_pw.page
+        self.driver: Playwright = web_pw.driver
+        self.browser: Browser = web_pw.browser
+        self.page: Page = web_pw.page
         self.log = web_pw.log
         self.config = web_pw.config
+
+        self.console_errors = []
+        self.page_errors = []
+        self.traffic_errors = []
+
+        self.page.on('console', lambda msg: self.console_errors.append(msg.text) if msg.type == 'error' else None)
+        self.page.on('pageerror', lambda msg: self.page_errors.append(msg.text) if msg.type == 'error' else None)
+        self.page.on('response', lambda resp: self.traffic_errors.append(resp) if resp.status >= 400 else None)
 
 
 class BasePageSe(metaclass=ABCMeta):
